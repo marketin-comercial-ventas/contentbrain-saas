@@ -1,0 +1,96 @@
+{
+  "module": "F00",
+  "scope": "docs/modules/f00.md (criterios de aceptación del contrato)",
+  "codeCommit": "5c5e6f4-dirty",
+  "environment": "platform=win32 node=v26.8.1 pnpm=11.23.0 embedded-postgres=17.10.0-beta.17",
+  "evidencePaths": "docs\\qa\\f00\\5c5e6f4-dirty/ (report.json, report.md, logs por comprobación) | CI: workflow local definido; sin remoto configurado",
+  "fields": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "unitTests": "FAIL",
+    "integrationTests": "PASS",
+    "security": "PASS",
+    "e2e": "PASS",
+    "productionBuild": "PASS",
+    "tenantIsolation": "N/A",
+    "permissions": "N/A",
+    "responsive": "N/A",
+    "regression": "FAIL",
+    "requirements": "NOT_EXECUTED",
+    "implementation": "NOT_EXECUTED",
+    "consoleServerDbReview": "NOT_EXECUTED",
+    "userWorkflow": "NOT_EXECUTED"
+  },
+  "applicabilityDecisions": "tenantIsolation=N/A; permissions=N/A; responsive=N/A",
+  "skipped": "ninguna (todas las comprobaciones ejecutadas)",
+  "findings": "unit: ver unit.log",
+  "qaReviewer": "PENDIENTE (sin revisor independiente)",
+  "qaDecision": "PENDING",
+  "supervisorDecision": "PENDING",
+  "gateExecution": "COMPLETE",
+  "finalStatus": "REJECTED",
+  "nextModuleAllowed": "NO",
+  "reasons": [
+    "algún campo obligatorio es FAIL",
+    "unitTests: sin PASS registrado",
+    "regression: al menos una suite de esta ejecución falló",
+    "qa-verdict.json ausente: revisión independiente no ejecutada",
+    "supervisorDecision=PENDING"
+  ],
+  "checks": [
+    {
+      "id": "lint",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 2152,
+      "log": ".gate\\logs\\lint.log"
+    },
+    {
+      "id": "typecheck",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1650,
+      "log": ".gate\\logs\\typecheck.log"
+    },
+    {
+      "id": "unit",
+      "status": "FAIL",
+      "exitCode": 1,
+      "durationMs": 2372,
+      "log": ".gate\\logs\\unit.log"
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 4300,
+      "log": ".gate\\logs\\build.log"
+    },
+    {
+      "id": "integration",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1502,
+      "log": ".gate\\logs\\integration.log"
+    },
+    {
+      "id": "security",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 939,
+      "log": ".gate\\logs\\security.log"
+    },
+    {
+      "id": "e2e",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 2944,
+      "log": ".gate\\logs\\e2e.log"
+    }
+  ],
+  "options": {
+    "selftest": true,
+    "allowPendingQa": false
+  },
+  "generatedAt": "2026-10-07T12:48:45.858Z"
+}

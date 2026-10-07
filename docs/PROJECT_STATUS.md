@@ -14,16 +14,16 @@ Vocabulario de estados de módulo (exclusivo):
 | Campo | Valor |
 |---|---|
 | Bootstrap documental | COMPLETO (AGENTS.md, rules, agentes, skills, control, ADRs) |
-| Módulo activo | F00 Foundation (no iniciado) |
-| Gate vigente | Ninguno ejecutado; comandos de gate aún no implementados |
-| Repositorio | Git `main`, último commit `e3bf5a3` |
-| Bloqueos | Ninguno declarado |
+| Módulo activo | F00 Foundation → DONE; siguiente: F01 Identity (NOT_STARTED) |
+| Gate vigente | F00: `FINAL STATUS: APPROVED` (exit 0) — `docs/qa/f00/5c5e6f4-dirty/report.json` |
+| Repositorio | Git `main` (ver `git log`); cierre de F00 |
+| Bloqueos | CI/Vercel sin remoto ni credenciales (aceptado 2026-10-06, REQ-G-06/F00-06 en PEND) |
 
 ## Módulos
 
 | ID | Módulo | Estado | Responsable | Evidencia | Bloqueo |
 |---|---|---|---|---|---|
-| F00 | Foundation | NOT_STARTED | — | — | — |
+| F00 | Foundation | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f00/5c5e6f4/` (gate en commit limpio) y `docs/qa/f00/5c5e6f4-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
 | F01 | Identity | NOT_STARTED | — | — | — |
 | F02 | Multi-Tenant | NOT_STARTED | — | — | — |
 | F03 | Company Brain | NOT_STARTED | — | — | — |
@@ -54,3 +54,26 @@ Al iniciar un módulo: crear `docs/modules/<id>.md`, pasar el estado a
 evidencia en `docs/qa/<id>/<commit>/`.
 
 No marcar módulos como hechos por crear su estructura o documentación.
+
+## Hallazgos QA de F00 (no bloqueantes; seguimiento en módulos siguientes)
+
+F-01 `drizzle.config.ts` usa credencial localhost por defecto si falta
+`DATABASE_URL` → exigirla explícitamente. · F-02 `--allow-pending-qa` sale 0
+con `finalStatus=BLOCKED` (CI) → revisar contrato de exit codes. · F-03
+versión de `embedded-postgres` hardcodeada en el environment del gate. ·
+F-04 la inyección del selftest es por aserción de entorno (la detección real
+de fallos la cubre `gate-decision.test.ts`). · F-05 en F00 la regresión es
+re-ejecución sin comparación histórica (documentado en `TESTING.md`); desde
+F01 comparar con el último módulo aprobado. · F-06 CI nunca ejecutada en
+remoto (bloqueo aceptado).
+
+Detalle completo: `docs/qa/f00/5c5e6f4-dirty/qa-verdict.json` y `review.md`.
+
+## Decisiones de entorno (F00)
+
+- **2026-10-07 — BD de pruebas:** PostgreSQL 17 instalado como **servicio**
+  con winget (`postgresql-x64-17`) porque `embedded-postgres` no arranca en
+  sesión de administrador; las suites crean/borran una base `app_test_*`
+  dedicada por ejecución vía `TEST_DATABASE_URL` (`.env.local`), con
+  `embedded-postgres` como respaldo automático (CI/sesión no elevada). Detalle
+  en `docs/modules/f00.md` («Cambios acordados durante la ejecución»).

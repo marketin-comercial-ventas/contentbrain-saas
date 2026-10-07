@@ -1,0 +1,90 @@
+{
+  "module": "F00",
+  "scope": "docs/modules/f00.md (criterios de aceptación del contrato)",
+  "codeCommit": "5c5e6f4-dirty",
+  "environment": "platform=win32 node=v26.8.1 pnpm=11.23.0 embedded-postgres=17.10.0-beta.17",
+  "evidencePaths": "docs\\qa\\f00\\5c5e6f4-dirty/ (report.json, report.md, logs por comprobación) | CI: workflow local definido; sin remoto configurado",
+  "fields": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "unitTests": "PASS",
+    "integrationTests": "PASS",
+    "security": "PASS",
+    "e2e": "PASS",
+    "productionBuild": "PASS",
+    "tenantIsolation": "N/A",
+    "permissions": "N/A",
+    "responsive": "N/A",
+    "regression": "PASS",
+    "requirements": "PASS",
+    "implementation": "PASS",
+    "consoleServerDbReview": "PASS",
+    "userWorkflow": "PASS"
+  },
+  "applicabilityDecisions": "tenantIsolation=N/A; permissions=N/A; responsive=N/A",
+  "skipped": "ninguna (todas las comprobaciones ejecutadas)",
+  "findings": "ninguno en esta ejecución",
+  "qaReviewer": "qa-engineer (sesión independiente)",
+  "qaDecision": "APPROVED",
+  "supervisorDecision": "APPROVED",
+  "gateExecution": "COMPLETE",
+  "finalStatus": "APPROVED",
+  "nextModuleAllowed": "YES",
+  "reasons": [],
+  "checks": [
+    {
+      "id": "lint",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 3384,
+      "log": ".gate\\logs\\lint.log"
+    },
+    {
+      "id": "typecheck",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 2143,
+      "log": ".gate\\logs\\typecheck.log"
+    },
+    {
+      "id": "unit",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 3116,
+      "log": ".gate\\logs\\unit.log"
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 5026,
+      "log": ".gate\\logs\\build.log"
+    },
+    {
+      "id": "integration",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1776,
+      "log": ".gate\\logs\\integration.log"
+    },
+    {
+      "id": "security",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1007,
+      "log": ".gate\\logs\\security.log"
+    },
+    {
+      "id": "e2e",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 3528,
+      "log": ".gate\\logs\\e2e.log"
+    }
+  ],
+  "options": {
+    "selftest": false,
+    "allowPendingQa": false
+  },
+  "generatedAt": "2026-10-07T13:35:37.751Z"
+}

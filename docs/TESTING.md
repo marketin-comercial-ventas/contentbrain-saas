@@ -40,6 +40,16 @@ Reglas de implementación:
 | Seguridad | suite `test:security` | Aislamiento tenant, permisos, entradas |
 | Regresión | suite existente | Módulos previamente aprobados |
 
+Notas de entorno:
+
+- Integración: cada ejecución crea y borra una base `app_test_*` dedicada
+  contra `TEST_DATABASE_URL` (servicio PostgreSQL local) o, si no está
+  definida, `embedded-postgres` (requiere sesión no administradora en
+  Windows). Nunca se toca una base con datos de producción.
+- Regresión en F00: re-ejecución completa de las suites (no hay módulos
+  previos que proteger); desde F01, comparar con la evidencia del último
+  módulo aprobado (hallazgo QA F-05 de F00).
+
 ## Política de aplicabilidad
 
 - Acordar aplicabilidad con QA **antes** de implementar.

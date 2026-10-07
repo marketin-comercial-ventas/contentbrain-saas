@@ -1,0 +1,90 @@
+{
+  "module": "f00",
+  "codeCommit": "5c5e6f4-dirty",
+  "baseCommit": "5c5e6f4",
+  "reviewer": "qa-engineer (sesión independiente)",
+  "independentOfImplementer": true,
+  "decision": "APPROVED",
+  "fields": {
+    "requirements": "PASS",
+    "implementation": "PASS",
+    "consoleServerDbReview": "PASS",
+    "userWorkflow": "PASS"
+  },
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "menor",
+      "blocking": false,
+      "location": "drizzle.config.ts:8",
+      "description": "Fallback con credencial local literal (postgres:password@127.0.0.1) cuando falta DATABASE_URL. No es un secreto de producción (mismo valor que .env.example y que el usuario embebido de tests/integration/global-setup.ts:51), pero un default con password en código podría confundirse con credencial real y el test de secretos (tests/security/initial-surface.test.ts:30-33) no lo detecta porque la password va embebida en la URL y no cumple el patrón `password[:=]\"...\"`.",
+      "expected": "Exigir DATABASE_URL y fallar con mensaje claro si no está definida (patrón ya usado en scripts/db-migrate.mjs:9-13).",
+      "repro": "Leer drizzle.config.ts:8; ejecutar pnpm db:generate sin DATABASE_URL y observar que conecta a app_development con credencial por defecto."
+    },
+    {
+      "id": "F-02",
+      "severity": "menor",
+      "blocking": false,
+      "location": "scripts/quality-gate.mjs:177-182",
+      "description": "El modo CI `--allow-pending-qa` sale con código 0 aunque FINAL STATUS sea BLOCKED (QA/Supervisor pendientes). No autoaprueba: el reporte declara finalStatus=BLOCKED, nextModuleAllowed=NO, qaDecision=PENDING y el propio mensaje dice «no es aprobación». El riesgo es que un consumidor solo mire el exit code y crea que el módulo está aprobado.",
+      "expected": "Mantener exit 0 solo para CI (decidido en el contrato) pero dejar constancia en el workflow de que el cierre real es BLOCKED, o usar un código de salida distinto (p. ej. 3) reservado a «checks automáticos OK, cierre pendiente».",
+      "repro": "pnpm quality:gate --module f00 --allow-pending-qa sin qa-verdict.json → exit 0 y report.json con finalStatus=BLOCKED."
+    },
+    {
+      "id": "F-03",
+      "severity": "menor",
+      "blocking": false,
+      "location": "scripts/quality-gate.mjs:65",
+      "description": "El campo `environment` del reporte fija la cadena `embedded-postgres=17.10.0-beta.17` literal en lugar de leerla de package.json; si cambia la dependencia, la evidencia seguirá afirmando la versión antigua.",
+      "expected": "Leer la versión de devDependencies (como ya se hace con pnpm --version en quality-gate.mjs:54-59).",
+      "repro": "Inspeccionar scripts/quality-gate.mjs:61-66 y comparar con la versión declarada en package.json:44."
+    },
+    {
+      "id": "F-04",
+      "severity": "menor",
+      "blocking": false,
+      "location": "tests/unit/gate-selftest.test.ts:5",
+      "description": "El «autotest» se inyecta como una aserción de entorno (`expect(process.env.GATE_SELFTEST).not.toBe(\"1\")`): sirve para provocar un fallo real con --selftest (verificado: exit 1, unit FAIL), pero por sí solo no demuestra que el gate detecte fallos de suites. Eso lo cubre tests/unit/gate-decision.test.ts:70-82.",
+      "expected": "Considerar una inyección más próxima al fallo real (p. ej. un test que falle bajo el flag con aserción de comportamiento) o documentar que la detección se prueba en gate-decision.test.ts.",
+      "repro": "pnpm quality:gate --module f00 --selftest → unit exit=1 y FINAL STATUS: REJECTED."
+    },
+    {
+      "id": "F-05",
+      "severity": "informativo",
+      "blocking": false,
+      "location": "scripts/regression.mjs:11",
+      "description": "La «regresión» re-ejecuta las suites del commit actual; no compara con resultados del commit anterior ni hay módulos aprobados previos que proteger. Aceptable en F00 (es el primer módulo), pero conviene registrarlo para que no se interprete como comparación histórica.",
+      "expected": "Documentar en docs/TESTING.md que en F00 la regresión = re-ejecución completa; añadir comparación con la evidencia del último módulo aprobado desde F01.",
+      "repro": "Leer scripts/regression.mjs:4-12."
+    },
+    {
+      "id": "F-06",
+      "severity": "informativo",
+      "blocking": false,
+      "location": ".github/workflows/ci.yml:1-6",
+      "description": "El workflow está definido pero no se ha ejecutado nunca en un remoto (repo sin remoto GitHub); la protección con checks obligatorios queda pendiente. Es el bloqueo aceptado por el propietario (2026-10-06) recogido en docs/modules/f00.md:43-45,57 y REQ-F00-06 permite «bloqueo declarado con precisión». No lo he podido verificar por ejecución remota.",
+      "expected": "Revisar de nuevo (release-check / feature-completion-gate) al configurar el remoto.",
+      "repro": "git remote -v → sin remotos."
+    }
+  ],
+  "executedChecks": [
+    "pnpm install --frozen-lockfile → exit 0 (lockfile sincronizado)",
+    "pnpm lint → exit 0",
+    "pnpm typecheck → exit 0",
+    "pnpm test:unit → exit 0 (5 archivos, 21 tests, 0 skips)",
+    "pnpm test:integration → exit 0 (base app_test_1791377496434_2493c1 creada y eliminada, 5 tests reales sobre PostgreSQL del servicio)",
+    "pnpm test:security → exit 0 (4 tests, exige build previo)",
+    "pnpm build → exit 0 (Next.js 16.4.0, rutas / y /api/health)",
+    "pnpm test:e2e → exit 0 (3 tests Chromium contra build servido en 127.0.0.1:3100)",
+    "pnpm test:regression → exit 0 (unit+integration+security+e2e PASS)",
+    "pnpm quality:gate --module f00 --selftest → exit 1, finalStatus=REJECTED, unit exitCode=1 (fallo inyectado detectado)",
+    "pnpm quality:gate --module f00 (sin veredicto) → exit 2, finalStatus=BLOCKED (evidencia ausente ⇒ no aprobación)",
+    "pnpm dev + GET / → 200; GET /api/health → 200 {status:ok, service, version, timestamp}",
+    "Revisión de código: scripts/quality-gate.mjs, scripts/lib/{gate-decision,run-checks,migrate,load-env}.mjs, scripts/{db-migrate,regression,run-e2e}.mjs, src/app/api/health/route.ts, src/shared/contracts/health.ts, src/shared/health/payload.ts, src/server/db/{client,schema}.ts, playwright.config.ts, .github/workflows/ci.yml",
+    "Revisión de tests: tests/unit/*.ts(x), tests/integration/*, tests/security/*, tests/e2e/* (sin || true, sin .skip/.todo, con aserciones reales)",
+    "Secretos: barrido del repo (sin credenciales reales; solo defaults localhost); git ls-files no incluye .env* ; git check-ignore confirma .env.local, .gate/, test-results/",
+    "Aislamiento: ninguna base app_test_* residual tras las ejecuciones (consulta pg_database)",
+    "Aplicabilidad: docs/modules/f00.applicability.json — 3 N/A con justification y agreedBeforeExecution=2026-10-06"
+  ],
+  "reviewedAt": "2026-10-07T12:59:10.239Z"
+}
