@@ -1,0 +1,20 @@
+$ pnpm test:e2e
+exit=0
+durationMs=4574
+
+
+Running 10 tests using 6 workers
+
+  ok  5 [chromium] › tests\e2e\auth.spec.ts:109:5 › entrada inválida responde 400 con error controlado (93ms)
+  ok  6 [chromium] › tests\e2e\auth.spec.ts:68:5 › POST con Origin distinto del host se rechaza con 403 (71ms)
+  ok  1 [chromium] › tests\e2e\auth.spec.ts:91:5 › forgot responde 200 sin token en producción y reset rechaza token inválido (260ms)
+  ok  3 [chromium] › tests\e2e\auth.spec.ts:49:5 › credenciales incorrectas devuelven 401 sin revelar existencia de la cuenta (481ms)
+  ok  9 [chromium] › tests\e2e\smoke.spec.ts:12:5 › GET /api/health cumple el contrato compartido (108ms)
+  ok 10 [chromium] › tests\e2e\smoke.spec.ts:21:5 › cabeceras de seguridad presentes en la respuesta (31ms)
+  ok  7 [chromium] › tests\e2e\auth.spec.ts:117:5 › las pantallas de auth son utilizables en viewport móvil (375px) (590ms)
+  ok  8 [chromium] › tests\e2e\smoke.spec.ts:4:5 › la página principal responde 200 y muestra el encabezado (427ms)
+  ok  4 [chromium] › tests\e2e\auth.spec.ts:5:5 › registro, login con cookie segura, sesión activa y logout (939ms)
+  ok  2 [chromium] › tests\e2e\auth.spec.ts:78:5 › el rate limit responde 429 tras los intentos de login permitidos (1.5s)
+
+  10 passed (3.6s)
+$ playwright test

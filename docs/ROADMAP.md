@@ -10,7 +10,7 @@ documentos de control, ADRs iniciales). No autoriza a aprobar Foundation.
 | Fase | Módulo | Estado |
 |---|---|---|
 | F00 | Foundation: repo, stack, versiones, entorno, DB de pruebas, migraciones iniciales, CI, gate ejecutable, destino de despliegue verificado | DONE |
-| F01 | Identity: cuentas, login, sesiones, recuperación, autorización base | NOT_STARTED |
+| F01 | Identity: cuentas, login, sesiones, recuperación, autorización base | DONE |
 | F02 | Multi-Tenant: organizaciones, membresías, invitaciones, RBAC, RLS, cambio de empresa, entitlements | NOT_STARTED |
 | F03 | Company Brain, marcas, sucursales, perfiles Commercial/Talent | NOT_STARTED |
 | F04 | Catálogo de productos, servicios, precios y ofertas | NOT_STARTED |

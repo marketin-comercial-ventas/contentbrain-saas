@@ -40,11 +40,15 @@ REJECTED, gate final APPROVED).
 
 | ID | Requisito | Origen | Módulo | Criterio verificable | Pruebas | Estado |
 |---|---|---|---|---|---|---|
-| REQ-F01-01 | Registro de cuenta con email único y contraseña hasheada (scrypt) | MP 4, 37 | F01 | Usuario creado sin contraseña en claro; duplicado → 409 | unit, integration | PEND |
-| REQ-F01-02 | Login con sesión en cookie httpOnly; token solo hasheado en BD | MP 35 | F01 | Cookie con flags de seguridad; BD sin token en claro | integration, security | PEND |
-| REQ-F01-03 | Logout revoca la sesión en servidor (no solo borra cookie) | MP 35 | F01 | Tras logout, `me` → 401 con la cookie anterior | integration | PEND |
-| REQ-F01-04 | Recuperación de contraseña con token temporal de un solo uso; reset revoca sesiones | MP 37 | F01 | Token usado/expirado rechazado; sesiones previas invalidadas | integration | PEND |
-| REQ-F01-05 | Autorización base en servidor: sesión activa requerida en rutas protegidas | MP 5, 37 | F01 | `me` y helpers → 401 sin sesión o con sesión revocada | unit, integration | PEND |
-| REQ-F01-06 | Validación Zod compartida + rate limiting + rechazo de Origin en auth | MP 35 | F01 | 400/429/403 en casos negativos | unit, security | PEND |
-| REQ-F01-07 | Auditoría de eventos de autenticación en `audit_events` | MP 4 | F01 | Filas para alta, login ok/fallo y reset | integration | PEND |
-| REQ-F01-08 | Evidencia F01 en `docs/qa/f01/<commit>/` con formato canónico | MP 36 | F01 | Reporte completo; no ejecutados declarados | revisión documental | PEND |
+| REQ-F01-01 | Registro de cuenta con email único y contraseña hasheada (scrypt) | MP 4, 37 | F01 | Usuario creado sin contraseña en claro; duplicado → 409 | unit, integration | VERIFIED |
+| REQ-F01-02 | Login con sesión en cookie httpOnly; token solo hasheado en BD | MP 35 | F01 | Cookie con flags de seguridad; BD sin token en claro | integration, security | VERIFIED |
+| REQ-F01-03 | Logout revoca la sesión en servidor (no solo borra cookie) | MP 35 | F01 | Tras logout, `me` → 401 con la cookie anterior | integration | VERIFIED |
+| REQ-F01-04 | Recuperación de contraseña con token temporal de un solo uso; reset revoca sesiones | MP 37 | F01 | Token usado/expirado rechazado; sesiones previas invalidadas | integration | VERIFIED |
+| REQ-F01-05 | Autorización base en servidor: sesión activa requerida en rutas protegidas | MP 5, 37 | F01 | `me` y helpers → 401 sin sesión o con sesión revocada | unit, integration | VERIFIED |
+| REQ-F01-06 | Validación Zod compartida + rate limiting + rechazo de Origin en auth | MP 35 | F01 | 400/429/403 en casos negativos | unit, security | VERIFIED |
+| REQ-F01-07 | Auditoría de eventos de autenticación en `audit_events` | MP 4 | F01 | Filas para alta, login ok/fallo y reset | integration | VERIFIED |
+| REQ-F01-08 | Evidencia F01 en `docs/qa/f01/<commit>/` con formato canónico | MP 36 | F01 | Reporte completo; no ejecutados declarados | revisión documental | VERIFIED |
+
+Evidencia F01: `docs/qa/f01/3ba7723/` (gate sobre commit limpio) y
+`docs/qa/f01/3ba7723-dirty/` (veredicto QA independiente APPROVED, selftest
+REJECTED, gate final APPROVED).

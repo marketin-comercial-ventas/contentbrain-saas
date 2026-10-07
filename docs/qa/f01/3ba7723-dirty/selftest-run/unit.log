@@ -1,0 +1,40 @@
+$ pnpm test:unit
+exit=1
+durationMs=3393
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.3 [39m[90mC:/proyectos/Proyexto Comercial y Recursos Hunanos[39m
+
+ [31m❯[39m [30m[42m unit [49m[39m tests/unit/gate-selftest.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 12[2mms[22m[39m
+   [31m❯[39m autotest del gate (falla inyectada) [2m(1)[22m
+[31m     [31m×[31m la suite normal pasa cuando no se pide autotest[39m[32m 10[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/gate-decision.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/rate-limit.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/migrate-lib.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/auth-contracts.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/page.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 196[2mms[22m[39m
+ [32m✓[39m [30m[42m unit [49m[39m tests/unit/password.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 299[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m32 passed[39m[22m[90m (33)[39m
+[2m   Start at [22m 08:38:41
+[2m   Duration [22m 2.56s[2m (environment 71%, setup 20%, transform 3%, tests 3%, import 2%)[22m
+
+[ELIFECYCLE] Command failed with exit code 1.
+$ vitest run --config vitest.unit.config.mts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m [30m[42m unit [49m[39m tests/unit/gate-selftest.test.ts[2m > [22mautotest del gate (falla inyectada)[2m > [22mla suite normal pasa cuando no se pide autotest
+[31m[1mAssertionError[22m: expected '1' not to be '1' // Object.is equality[39m
+[36m [2m❯[22m tests/unit/gate-selftest.test.ts:[2m5:43[22m[39m
+    [90m  3|[39m describe("autotest del gate (falla inyectada)", () => {
+    [90m  4|[39m   it("la suite normal pasa cuando no se pide autotest", () => {
+    [90m  5|[39m     expect(process.env.GATE_SELFTEST).not.toBe("1");
+    [90m   |[39m                                           [31m^[39m
+    [90m  6|[39m   });
+    [90m  7|[39m });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+

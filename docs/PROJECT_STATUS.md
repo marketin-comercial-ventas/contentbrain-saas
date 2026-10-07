@@ -14,9 +14,9 @@ Vocabulario de estados de módulo (exclusivo):
 | Campo | Valor |
 |---|---|
 | Bootstrap documental | COMPLETO (AGENTS.md, rules, agentes, skills, control, ADRs) |
-| Módulo activo | F00 Foundation → DONE; siguiente: F01 Identity (NOT_STARTED) |
-| Gate vigente | F00: `FINAL STATUS: APPROVED` (exit 0) — `docs/qa/f00/5c5e6f4-dirty/report.json` |
-| Repositorio | Git `main` (ver `git log`); cierre de F00 |
+| Módulo activo | F00 Foundation → DONE; F01 Identity → DONE; siguiente: F02 Multi-Tenant (NOT_STARTED) |
+| Gate vigente | F01: `FINAL STATUS: APPROVED` (exit 0) — `docs/qa/f01/3ba7723-dirty/report.json` |
+| Repositorio | Git `main` (ver `git log`); cierre de F01 |
 | Bloqueos | CI/Vercel sin remoto ni credenciales (aceptado 2026-10-06, REQ-G-06/F00-06 en PEND) |
 
 ## Módulos
@@ -24,7 +24,7 @@ Vocabulario de estados de módulo (exclusivo):
 | ID | Módulo | Estado | Responsable | Evidencia | Bloqueo |
 |---|---|---|---|---|---|
 | F00 | Foundation | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f00/5c5e6f4/` (gate en commit limpio) y `docs/qa/f00/5c5e6f4-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
-| F01 | Identity | NOT_STARTED | — | — | — |
+| F01 | Identity | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f01/3ba7723/` (gate commit limpio) y `docs/qa/f01/3ba7723-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
 | F02 | Multi-Tenant | NOT_STARTED | — | — | — |
 | F03 | Company Brain | NOT_STARTED | — | — | — |
 | F04 | Catálogo | NOT_STARTED | — | — | — |
@@ -69,7 +69,7 @@ remoto (bloqueo aceptado).
 
 Detalle completo: `docs/qa/f00/5c5e6f4-dirty/qa-verdict.json` y `review.md`.
 
-## Decisiones de entorno (F00)
+## Decisiones de entorno (F00 + F01)
 
 - **2026-10-07 — BD de pruebas:** PostgreSQL 17 instalado como **servicio**
   con winget (`postgresql-x64-17`) porque `embedded-postgres` no arranca en
@@ -77,3 +77,7 @@ Detalle completo: `docs/qa/f00/5c5e6f4-dirty/qa-verdict.json` y `review.md`.
   dedicada por ejecución vía `TEST_DATABASE_URL` (`.env.local`), con
   `embedded-postgres` como respaldo automático (CI/sesión no elevada). Detalle
   en `docs/modules/f00.md` («Cambios acordados durante la ejecución»).
+- **2026-10-07 — Orquestador de integración:** `scripts/run-integration.mjs`
+  sustituye a `globalSetup` de vitest (importar `embedded-postgres` en el
+  proceso de vitest reseteaba exit code a 0 y ocultaba fallos). El orquestador
+  crea/borra bases y lanza `vitest` como subproceso, preservando exit codes.

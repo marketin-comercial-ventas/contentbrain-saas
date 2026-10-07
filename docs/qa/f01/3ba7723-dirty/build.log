@@ -1,0 +1,40 @@
+$ pnpm build
+exit=0
+durationMs=5715
+
+▲ Next.js 16.4.0 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 73ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 798ms
+  Running TypeScript ...
+  Finished TypeScript in 1547ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/14) ...
+  Generating static pages using 11 workers (3/14) 
+  Generating static pages using 11 workers (6/14) 
+  Generating static pages using 11 workers (10/14) 
+✓ Generating static pages using 11 workers (14/14) in 216ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/forgot
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/register
+├ ƒ /api/auth/reset
+├ ƒ /api/health
+├ ○ /login
+├ ○ /recuperar
+├ ○ /registro
+└ ○ /restablecer
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+$ next build

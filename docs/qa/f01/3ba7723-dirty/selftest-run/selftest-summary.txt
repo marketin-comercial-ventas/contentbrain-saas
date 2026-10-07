@@ -1,0 +1,4 @@
+selftest: GATE_SELFTEST=1 (fallo inyectado en la suite unit)
+commit: 3ba7723-dirty
+resultado esperado y observado: REJECTED, exit code 1
+motivos: unitTests FAIL + regression FAIL + qa-verdict ausente + supervisor PENDING
