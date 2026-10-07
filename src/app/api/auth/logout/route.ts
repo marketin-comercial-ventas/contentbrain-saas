@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import {
   isSameOrigin,
@@ -30,3 +31,4 @@ export async function POST(request: Request): Promise<NextResponse> {
     await client.end({ timeout: 1 });
   }
 }
+

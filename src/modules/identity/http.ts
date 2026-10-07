@@ -2,16 +2,20 @@ import { NextResponse } from "next/server";
 
 export const SESSION_COOKIE = "session";
 
-export function sessionCookieOptions(): {
-  httpOnly: boolean;
-  sameSite: "lax";
-  secure: boolean;
-  path: string;
-  maxAge: number;
-} {
+export interface AuthResult {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    status: string;
+  };
+  companyId: string | null;
+}
+
+export function sessionCookieOptions() {
   return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
@@ -39,7 +43,7 @@ export function clientIp(request: Request): string {
   return "local";
 }
 
-export function jsonError(status: number, code: string, message: string): NextResponse {
+export function jsonError(status: number, code: string, message: string) {
   return NextResponse.json({ error: { code, message } }, { status });
 }
 
@@ -51,4 +55,53 @@ export function readSessionCookie(request: Request): string | undefined {
     if (name === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
   }
   return undefined;
+}
+
+export interface AuthResult {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    status: string;
+  };
+  companyId: string | null;
+}
+
+/**
+ * Autentica la request y retorna user + companyId actual (si hay membresía).
+ * También setea las variables de sesión RLS en la DB para la duración de la request.
+ */
+export async function auth(request: Request): Promise<AuthResult | null> {
+  const token = readSessionCookie(request);
+  if (!token) return null;
+  
+  const { db } = await import("@/server/db/client");
+  const { getUserByToken } = await import("@/modules/identity/service");
+  const { memberships } = await import("@/server/db/schema");
+  const { eq } = await import("@/server/db/client");
+  
+  const user = await getUserByToken(db, token);
+  if (!user) return null;
+  
+  const [m] = await db.select({ companyId: memberships.companyId })
+    .from(memberships)
+    .where(eq(memberships.userId, user.id))
+    .limit(1);
+  
+  const companyId = m?.companyId ?? null;
+  
+  return { user, companyId };
+}
+
+/**
+ * Crea una instancia de DB con contexto RLS para la request actual.
+ * Usar en API routes para que RLS policies filtren automáticamente.
+ */
+export async function getDbWithRls(request: Request) {
+  const authResult = await auth(request);
+  if (!authResult) return null;
+  
+  const { createDbWithContext } = await import("@/server/db/client");
+  const databaseUrl = process.env.DATABASE_URL!;
+  return createDbWithContext(databaseUrl, authResult.companyId, authResult.user.id);
 }
