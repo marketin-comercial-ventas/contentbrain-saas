@@ -11,8 +11,8 @@ no confía en este resumen por sí solo.
 | Fecha | 2026-10-06 |
 | Módulo activo | F00 Foundation (no iniciado) |
 | Última tarea | Bootstrap documental |
-| Commit | `c10f93a` (commit inicial) + pendiente de commit del bootstrap completo |
-| Cambios locales | AGENTS.md, `.cursor/rules/*.mdc` (7), `.cursor/agents/*.md` (10), docs de control, ADRs — ver `git status` |
+| Commit | `e3bf5a3` (bootstrap documental) sobre `c10f93a` |
+| Cambios locales | Ninguno (working tree limpio) |
 | Decisiones tomadas | Skills instaladas en `.cursor/skills/` (canónica) y `.opencode/skills/` (copia opencode); identidad Git local `opencode <opencode@localhost>` |
 | Pruebas ejecutadas | Ninguna (no existe `package.json`; comandos del contrato aún no implementados) |
 | Gate | No ejecutado |

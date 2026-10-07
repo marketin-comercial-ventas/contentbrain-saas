@@ -16,7 +16,7 @@ Vocabulario de estados de módulo (exclusivo):
 | Bootstrap documental | COMPLETO (AGENTS.md, rules, agentes, skills, control, ADRs) |
 | Módulo activo | F00 Foundation (no iniciado) |
 | Gate vigente | Ninguno ejecutado; comandos de gate aún no implementados |
-| Repositorio | Git `main`, commit inicial `c10f93a` |
+| Repositorio | Git `main`, último commit `e3bf5a3` |
 | Bloqueos | Ninguno declarado |
 
 ## Módulos
