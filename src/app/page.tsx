@@ -11,6 +11,14 @@ export default function HomePage() {
         <a className="underline" href="/api/health">
           /api/health
         </a>
+        {" · "}
+        <a className="underline" href="/login">
+          Iniciar sesión
+        </a>
+        {" · "}
+        <a className="underline" href="/registro">
+          Crear cuenta
+        </a>
       </p>
     </main>
   );

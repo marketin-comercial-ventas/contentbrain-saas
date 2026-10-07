@@ -5,9 +5,11 @@ import { appSettings } from "@/server/db/schema";
 import { readMigrationFiles, runMigrations, sha256 } from "../../scripts/lib/migrate.mjs";
 import fixture from "../fixtures/app-settings.json";
 
-const url = process.env.DATABASE_URL;
+const url = process.env.MIGRATIONS_DATABASE_URL;
 if (!url) {
-  throw new Error("DATABASE_URL no definido: el globalSetup de integración no se ejecutó");
+  throw new Error(
+    "MIGRATIONS_DATABASE_URL no definido: ejecuta la suite con `pnpm test:integration` (orquestador scripts/run-integration.mjs; la suite de migraciones exige una base vacía propia)",
+  );
 }
 
 const outDir = "drizzle";
@@ -19,7 +21,7 @@ describe("pipeline de migraciones sobre PostgreSQL real aislado", () => {
     await client.end({ timeout: 1 });
   });
 
-  it("la suite apunta a una base de pruebas dedicada por ejecución", async () => {
+  it("la suite apunta a su base vacía dedicada por ejecución", async () => {
     const rows = await client`select current_database() as db, current_user as usr`;
     expect(rows[0]?.db).toMatch(/^app_test_/);
     expect(rows[0]?.usr).toBe("postgres");

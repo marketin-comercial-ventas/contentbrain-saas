@@ -1,0 +1,17 @@
+{
+  "tenantIsolation": {
+    "status": "N/A",
+    "justification": "F01 no crea tenants ni datos de negocio multiempresa (users es identidad global sin tenant_id); el aislamiento completo con memberships y RLS es obligatorio desde F02 (MASTER_PROMPT 35).",
+    "agreedBeforeExecution": "2026-10-07"
+  },
+  "permissions": {
+    "status": "N/A",
+    "justification": "F01 implementa autenticación (sesión) y autorización base (requireUser), no RBAC: roles, permisos por acción y membresías se construyen en F02; no existe superficie autorizable por permiso aún.",
+    "agreedBeforeExecution": "2026-10-07"
+  },
+  "responsive": {
+    "status": "N/A",
+    "justification": "Sin UI de negocio en F01; las pantallas de auth son formularios mínimos y su correcta adaptación a viewport móvil se verifica en E2E (auth.spec.ts).",
+    "agreedBeforeExecution": "2026-10-07"
+  }
+}
