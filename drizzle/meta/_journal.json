@@ -36,6 +36,13 @@
       "when": 1791402000000,
       "tag": "0004_f03_company_brain_extended",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791403000000,
+      "tag": "0005_f04_catalog_advanced",
+      "breakpoints": true
     }
   ]
 }

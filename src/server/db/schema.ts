@@ -161,23 +161,56 @@ export const companyBrain = pgTable("company_brain", {
 export type CompanyBrain = typeof companyBrain.$inferSelect;
 export type NewCompanyBrain = typeof companyBrain.$inferInsert;
 
-/* ===================== Productos ===================== */
+/* ===================== F04 Catálogo Avanzado ===================== */
+
+export const productStatusEnum = pgEnum("product_status", ["draft", "active", "archived", "discontinued"]);
 
 export const productCategoryEnum = pgEnum("product_category", ["producto", "servicio", "curso", "suscripcion", "otro"]);
+
+export const offerTypeEnum = pgEnum("offer_type", ["percentage", "fixed_amount", "buy_x_get_y", "free_shipping", "bundle", "loyalty"]);
+
+export const offerStatusEnum = pgEnum("offer_status", ["draft", "scheduled", "active", "paused", "expired", "cancelled"]);
 
 export const products = pgTable("products", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id")
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
+  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   name: text("name").notNull(),
+  slug: text("slug").notNull(),
   description: text("description"),
+  shortDescription: text("short_description"),
   category: productCategoryEnum("category").notNull().default("producto"),
-  price: integer("price").notNull().default(0),
+  status: productStatusEnum("status").notNull().default("draft"),
+  basePrice: integer("base_price").notNull().default(0),
+  compareAtPrice: integer("compare_at_price"),
+  costPrice: integer("cost_price"),
   currency: text("currency").notNull().default("USD"),
+  sku: text("sku"),
+  barcode: text("barcode"),
+  weight: integer("weight"),
+  dimensions: jsonb("dimensions").default({}),
   benefits: jsonb("benefits").notNull().default([]),
   features: jsonb("features").notNull().default([]),
-  status: text("status").notNull().default("active"),
+  specifications: jsonb("specifications").default({}),
+  tags: jsonb("tags").default([]),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  images: jsonb("images").default([]),
+  videos: jsonb("videos").default([]),
+  isFeatured: boolean("is_featured").notNull().default(false),
+  isDigital: boolean("is_digital").notNull().default(false),
+  digitalFileUrl: text("digital_file_url"),
+  requiresShipping: boolean("requires_shipping").notNull().default(true),
+  taxable: boolean("taxable").notNull().default(true),
+  taxClass: text("tax_class"),
+  trackInventory: boolean("track_inventory").notNull().default(true),
+  inventoryQuantity: integer("inventory_quantity").notNull().default(0),
+  lowStockThreshold: integer("low_stock_threshold").default(10),
+  allowBackorder: boolean("allow_backorder").notNull().default(false),
+  meta: jsonb("meta").default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -186,10 +219,167 @@ export const products = pgTable("products", {
     .defaultNow(),
 }, (t) => ({
   companyIdx: index("products_company_idx").on(t.companyId),
+  brandIdx: index("products_brand_idx").on(t.brandId),
+  categoryIdx: index("products_category_idx").on(t.categoryId),
+  slugUnique: uniqueIndex("products_company_slug_unique").on(t.companyId, t.slug),
+  skuUnique: uniqueIndex("products_company_sku_unique").on(t.companyId, t.sku),
 }));
 
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+
+export const categories = pgTable("categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  parentId: uuid("parent_id").references(() => categories.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  image: text("image"),
+  icon: text("icon"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("categories_company_idx").on(t.companyId),
+  parentIdx: index("categories_parent_idx").on(t.parentId),
+  companySlugUnique: uniqueIndex("categories_company_slug_unique").on(t.companyId, t.slug),
+}));
+
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;
+
+export const productVariants = pgTable("product_variants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  sku: text("sku").notNull(),
+  barcode: text("barcode"),
+  price: integer("price"),
+  compareAtPrice: integer("compare_at_price"),
+  costPrice: integer("cost_price"),
+  weight: integer("weight"),
+  dimensions: jsonb("dimensions").default({}),
+  inventoryQuantity: integer("inventory_quantity").notNull().default(0),
+  lowStockThreshold: integer("low_stock_threshold").default(10),
+  optionValues: jsonb("option_values").notNull().default({}),
+  position: integer("position").default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  image: text("image"),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  productIdx: index("variants_product_idx").on(t.productId),
+  skuUnique: uniqueIndex("variants_company_sku_unique").on(t.productId, t.sku),
+}));
+
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type NewProductVariant = typeof productVariants.$inferInsert;
+
+export const productOptions = pgTable("product_options", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("select"),
+  position: integer("position").default(0),
+  values: jsonb("values").notNull().default([]),
+  isRequired: boolean("is_required").notNull().default(false),
+}, (t) => ({
+  productIdx: index("options_product_idx").on(t.productId),
+}));
+
+export type ProductOption = typeof productOptions.$inferSelect;
+export type NewProductOption = typeof productOptions.$inferInsert;
+
+export const offers = pgTable("offers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  type: offerTypeEnum("type").notNull(),
+  value: integer("value").notNull(),
+  minPurchaseAmount: integer("min_purchase_amount"),
+  maxDiscountAmount: integer("max_discount_amount"),
+  usageLimit: integer("usage_limit"),
+  usageCount: integer("usage_count").notNull().default(0),
+  usageLimitPerCustomer: integer("usage_limit_per_customer"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  status: offerStatusEnum("status").notNull().default("draft"),
+  appliesTo: jsonb("applies_to").default({}),
+  conditions: jsonb("conditions").default({}),
+  couponCode: text("coupon_code"),
+  isAutoApply: boolean("is_auto_apply").notNull().default(false),
+  priority: integer("priority").default(0),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("offers_company_idx").on(t.companyId),
+  slugUnique: uniqueIndex("offers_company_slug_unique").on(t.companyId, t.slug),
+  couponUnique: uniqueIndex("offers_company_coupon_unique").on(t.companyId, t.couponCode),
+}));
+
+export type Offer = typeof offers.$inferSelect;
+export type NewOffer = typeof offers.$inferInsert;
+
+export const offerProducts = pgTable("offer_products", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  offerId: uuid("offer_id")
+    .notNull()
+    .references(() => offers.id, { onDelete: "cascade" }),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+}, (t) => ({
+  offerIdx: index("offer_products_offer_idx").on(t.offerId),
+  productIdx: index("offer_products_product_idx").on(t.productId),
+  unique: uniqueIndex("offer_products_unique").on(t.offerId, t.productId),
+}));
+
+export type OfferProduct = typeof offerProducts.$inferSelect;
+export type NewOfferProduct = typeof offerProducts.$inferInsert;
+
+export const priceTiers = pgTable("price_tiers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  minQuantity: integer("min_quantity").notNull(),
+  maxQuantity: integer("max_quantity"),
+  price: integer("price").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+}, (t) => ({
+  productIdx: index("price_tiers_product_idx").on(t.productId),
+}));
+
+export type PriceTier = typeof priceTiers.$inferSelect;
+export type NewPriceTier = typeof priceTiers.$inferInsert;
 
 /* ===================== Audiencias ===================== */
 
