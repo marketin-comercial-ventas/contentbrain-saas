@@ -1,0 +1,16 @@
+---
+description: Evidencia real de pruebas, sin omisiones, con regresión y gate previo
+alwaysApply: true
+---
+PASS solo con evidencia reproducible: comando ejecutado, salida y commit.
+No saltar, desactivar ni rebajar pruebas para que pasen; no usar
+`--passWithNoTests`, `|| true` ni eco en scripts del gate.
+Ninguna prueba skipped, pendiente o sin aserciones cuenta como PASS.
+`N/A` exige justificación por fase aceptada antes de ejecutar la prueba.
+Cubrir caminos felices y negativos: entrada inválida, sin sesión, permiso
+insuficiente, módulo desactivado, cruce de tenant, concurrencia, reintentos.
+Proteger módulos ya aprobados con la suite de regresión en cada gate.
+Comandos en AGENTS.md; hasta que F00 los implemente, declararlos NO EJECUTADOS.
+Evidencia en `docs/qa/<module-id>/<commit>/`; el gate identifica el commit
+validado y cualquier cambio funcional posterior lo invalida.
+Detalle: docs/TESTING.md y skill feature-completion-gate.

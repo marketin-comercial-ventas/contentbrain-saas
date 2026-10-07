@@ -1,0 +1,16 @@
+---
+description: UI consistente, accesible, responsive y con estados reales
+globs: src/app/**,src/components/**
+alwaysApply: false
+---
+Componentes shadcn/ui + Tailwind consistentes; lógica de negocio en servicios de
+dominio, no en componentes ni en rutas.
+Estados reales en cada pantalla: carga, vacío, error recuperable, éxito y
+confirmación en acciones destructivas. Nunca ocultar un botón roto ni mostrar
+éxito de una operación fallida. Preservar borradores ante error y prevenir
+envíos duplicados.
+Accesibilidad: alternativa accesible al drag & drop, foco, teclado y ARIA.
+Responsive probado en los tamaños definidos en el plan de QA.
+Interfaz en español con i18n preparada; fechas, monedas y zonas horarias por
+tenant. Mostrar siempre la empresa activa.
+Detalle: docs/MASTER_PROMPT.md sección 30.

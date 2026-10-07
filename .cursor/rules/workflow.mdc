@@ -1,0 +1,12 @@
+---
+description: Flujo obligatorio de desarrollo y cierre de módulos
+alwaysApply: true
+---
+Leer AGENTS.md, PROJECT_STATUS.md y el contrato del módulo activo.
+Aplicar module-development al implementar y las revisiones especializadas pertinentes.
+Solicitar module-qa a un revisor independiente antes del cierre.
+Aplicar feature-completion-gate antes de declarar DONE o iniciar el siguiente módulo.
+No sustituir ejecución por afirmaciones: PASS requiere evidencia reproducible.
+Falta de entorno, credenciales o revisión implica bloqueo, nunca aprobación ficticia.
+No editar pruebas o criterios para ocultar un fallo ni rebajar gates sin autorización.
+Registrar cambios y mantener HANDOFF.md cuando se interrumpa una sesión.

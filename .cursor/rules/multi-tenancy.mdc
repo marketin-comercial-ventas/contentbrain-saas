@@ -1,0 +1,18 @@
+---
+description: Aislamiento multi-tenant, RBAC, entitlements y RLS obligatorios
+alwaysApply: true
+---
+Todo registro de negocio lleva `tenant_id` explícito, salvo catálogos globales
+enumerados en DATA_MODEL.md. Resolver identidad y membresía activa en servidor;
+nunca confiar en tenant_id, user_id o rol enviados por el cliente.
+Verificar en cada operación: permiso (RBAC por acción), acceso al recurso y
+entitlement del módulo contratado. Son tres capas independientes.
+Incluir el tenant en consultas, escrituras, agregaciones y unicidad cuando
+corresponda; usar FKs compuestas o equivalente para impedir cruces entre tenants.
+PostgreSQL RLS es defensa adicional en tablas de negocio (ADR-0003): la conexión
+de aplicación no puede evadir políticas y el contexto transaccional debe limpiarse.
+Aislar cachés, búsquedas, vectores, archivos, URLs firmadas, exportaciones, jobs,
+prompts y respuestas IA por tenant.
+Toda feature nueva debe incluir pruebas negativas de cruce de tenant y de
+permiso insuficiente; ocultar UI no es control de acceso.
+Detalle: docs/MASTER_PROMPT.md secciones 4-6 y skill tenant-security-audit.

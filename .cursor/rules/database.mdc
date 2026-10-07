@@ -1,0 +1,17 @@
+---
+description: Migraciones versionadas, constraints, transacciones y aislamiento de pruebas
+globs: src/server/db/**,src/modules/**,tests/integration/**,drizzle/**
+alwaysApply: false
+---
+Migraciones versionadas y revisables; nunca editar una ya aplicada en entornos
+compartidos (crear otra). Nada de sincronización destructiva automática.
+Cada tabla de negocio con `tenant_id`, FKs y constraints; unicidad cuando
+corresponda incluye el tenant. Precisión monetaria explícita, timestamps y
+políticas RLS revisadas (ADR-0002, ADR-0003).
+Migraciones con credenciales distintas de la aplicación; rol migrador no se
+usa en runtime. Backfills acotados, reiniciables e idempotentes.
+Pruebas de integración sobre PostgreSQL real aislado por suite; nunca sobre
+datos de producción ni compartiendo estado entre tests.
+Patrón transaccional verificable (p. ej. outbox) si se persiste y se emite un
+evento en la misma operación.
+Aplicar skill database-migration-review antes de integrar cambios de esquema.

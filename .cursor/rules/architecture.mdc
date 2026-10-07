@@ -1,0 +1,12 @@
+---
+description: Invariantes de arquitectura de la plataforma SaaS multiempresa
+alwaysApply: true
+---
+Usar una sola aplicación Next.js full-stack con TypeScript, un repositorio,
+PostgreSQL, Drizzle y despliegue previsto en Vercel.
+Mantener dominios Growth, Sales y Talent desacoplados sobre un core común.
+No codificar empresas, marcas, productos o procesos particulares.
+Leer AGENTS.md y los ADRs antes de modificar arquitectura.
+No cambiar las decisiones globales unilateralmente; elevar propuesta al Supervisor.
+No iniciar el siguiente módulo hasta QA aprobado y cierre del Supervisor.
+Consultar docs/MASTER_PROMPT.md para requisitos y docs/PROJECT_STATUS.md para avance.
