@@ -11,8 +11,8 @@ no confía en este resumen por sí solo.
 | Fecha | 2026-10-07 |
 | Módulo activo | F00 Foundation → **DONE**; siguiente: F01 Identity (NOT_STARTED) |
 | Última tarea | Cierre de F00: gate final APPROVED + documentación de estado |
-| Commit | `5c5e6f4` (código F00); cierre documental y evidencia en commit siguiente |
-| Cambios locales | Evidencia `docs/qa/f00/` y docs de estado sin commitear |
+| Commit | `5c5e6f4` (código F00) → `b1370b3` (cierre + evidencia QA) → `70f3021` (logs de evidencia) |
+| Cambios locales | Ninguno (working tree limpio tras el cierre) |
 | Decisiones tomadas | BD de pruebas: servicio PostgreSQL 17 (winget) + base dedicada `app_test_*` por ejecución (`TEST_DATABASE_URL`); `embedded-postgres` como respaldo (PostgreSQL no arranca en sesión admin) |
 | Pruebas ejecutadas | lint, typecheck, unit (21), integration (5, PostgreSQL real), security (4), e2e (3), build, regression — todos exit 0; gate `--selftest` exit 1 (REJECTED) y gate final exit 0 (APPROVED) |
 | Gate | F00: `FINAL STATUS: APPROVED` (`docs/qa/f00/5c5e6f4-dirty/report.json`); QA independiente APPROVED (`qa-verdict.json`) |
