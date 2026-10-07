@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# NOTA: este workflow existe desde F00 pero el repositorio aún no tiene remoto.
+# La protección con checks obligatorios en GitHub queda PENDIENTE hasta que se
+# configure el remoto (bloqueo documentado en docs/qa/f00/).
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unitarias
+        run: pnpm test:unit
+
+      - name: Build de producción
+        run: pnpm build
+
+      - name: Integración (PostgreSQL real aislado)
+        run: pnpm test:integration
+
+      - name: Seguridad
+        run: pnpm test:security
+
+      - name: Playwright (navegador)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E
+        run: pnpm test:e2e
+
+      - name: Gate (modo CI: sin aprobación QA aún)
+        run: pnpm quality:gate --module f00 --allow-pending-qa
+
+      - name: Subir evidencia del gate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-evidence
+          path: docs/qa/f00/**
+          if-no-files-found: error

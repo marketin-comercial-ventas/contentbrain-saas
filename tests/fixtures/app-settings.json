@@ -1,0 +1,4 @@
+[
+  { "key": "app.version", "value": { "major": 1, "minor": 0 } },
+  { "key": "app.region-default", "value": { "tz": "America/Mexico_City" } }
+]

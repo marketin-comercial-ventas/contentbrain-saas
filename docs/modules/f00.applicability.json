@@ -1,0 +1,17 @@
+{
+  "tenantIsolation": {
+    "status": "N/A",
+    "justification": "F00 excluye F01/F02: aún no existen usuarios, tenants ni datos de negocio multiempresa; el aislamiento completo es obligatorio desde F02 (MASTER_PROMPT 35).",
+    "agreedBeforeExecution": "2026-10-06"
+  },
+  "permissions": {
+    "status": "N/A",
+    "justification": "F00 no implementa autenticación (F01) ni RBAC (F02); no existe superficie autorizable más allá de rutas públicas.",
+    "agreedBeforeExecution": "2026-10-06"
+  },
+  "responsive": {
+    "status": "N/A",
+    "justification": "Sin UI de negocio en F00; la única pantalla (landing de Foundation) se verifica en E2E en escritorio.",
+    "agreedBeforeExecution": "2026-10-06"
+  }
+}
