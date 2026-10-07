@@ -209,6 +209,83 @@ export const newCandidateSchema = candidateSchema.omit({ id: true, companyId: tr
 export const updateCandidateSchema = newCandidateSchema.partial();
 export const moveCandidateSchema = z.object({ status: candidateStatusSchema });
 
+/* ===================== F03 Company Brain Extended ===================== */
+
+export const brandTypeSchema = z.enum(["principal", "secundaria", "producto", "servicio", "franquicia"]);
+
+export const brandSchema = z.object({
+  id: z.uuid(),
+  companyId: z.uuid(),
+  name: z.string().min(1).max(200),
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  description: z.string().max(5000).optional().nullable(),
+  logoUrl: z.string().url().optional().nullable(),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  secondaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  type: brandTypeSchema.default("principal"),
+  isActive: z.boolean().default(true),
+  website: z.string().url().optional().nullable(),
+  socialLinkedin: z.string().url().optional().nullable(),
+  socialInstagram: z.string().url().optional().nullable(),
+  socialTwitter: z.string().url().optional().nullable(),
+  socialFacebook: z.string().url().optional().nullable(),
+  socialTiktok: z.string().url().optional().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const newBrandSchema = brandSchema.omit({ id: true, companyId: true, createdAt: true, updatedAt: true });
+export const updateBrandSchema = newBrandSchema.partial();
+
+export const branchTypeSchema = z.enum(["sede", "sucursal", "oficina", "almacen", "punto_venta", "otro"]);
+
+export const branchSchema = z.object({
+  id: z.uuid(),
+  companyId: z.uuid(),
+  brandId: z.uuid().nullable().optional(),
+  name: z.string().min(1).max(200),
+  code: z.string().min(1).max(50),
+  type: branchTypeSchema.default("sucursal"),
+  address: z.string().max(500).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  state: z.string().max(100).optional().nullable(),
+  country: z.string().max(100).default("Argentina"),
+  postalCode: z.string().max(20).optional().nullable(),
+  phone: z.string().max(50).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  latitude: z.string().optional().nullable(),
+  longitude: z.string().optional().nullable(),
+  isActive: z.boolean().default(true),
+  isHeadquarters: z.boolean().default(false),
+  openingHours: z.record(z.string(), z.unknown()).default({}),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const newBranchSchema = branchSchema.omit({ id: true, companyId: true, createdAt: true, updatedAt: true });
+export const updateBranchSchema = newBranchSchema.partial();
+
+export const profileTypeSchema = z.enum(["commercial", "talent", "hybrid"]);
+
+export const profileSchema = z.object({
+  id: z.uuid(),
+  companyId: z.uuid(),
+  brandId: z.uuid().nullable().optional(),
+  branchId: z.uuid().nullable().optional(),
+  name: z.string().min(1).max(200),
+  type: profileTypeSchema,
+  description: z.string().max(5000).optional().nullable(),
+  responsibleUserId: z.uuid().nullable().optional(),
+  settings: z.record(z.string(), z.unknown()).default({}),
+  kpis: z.record(z.string(), z.unknown()).default({}),
+  isActive: z.boolean().default(true),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const newProfileSchema = profileSchema.omit({ id: true, companyId: true, createdAt: true, updatedAt: true });
+export const updateProfileSchema = newProfileSchema.partial();
+
 export type Company = z.infer<typeof companySchema>;
 export type NewCompany = z.infer<typeof newCompanySchema>;
 export type UpdateCompany = z.infer<typeof updateCompanySchema>;

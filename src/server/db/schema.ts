@@ -386,3 +386,109 @@ export const candidates = pgTable("candidates", {
 
 export type Candidate = typeof candidates.$inferSelect;
 export type NewCandidate = typeof candidates.$inferInsert;
+
+/* ===================== F03 Company Brain Extended ===================== */
+
+export const brandTypeEnum = pgEnum("brand_type", ["principal", "secundaria", "producto", "servicio", "franquicia"]);
+
+export const brands = pgTable("brands", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  primaryColor: text("primary_color").default("#3b82f6"),
+  secondaryColor: text("secondary_color").default("#1e40af"),
+  type: brandTypeEnum("type").notNull().default("principal"),
+  isActive: boolean("is_active").notNull().default(true),
+  website: text("website"),
+  socialLinkedin: text("social_linkedin"),
+  socialInstagram: text("social_instagram"),
+  socialTwitter: text("social_twitter"),
+  socialFacebook: text("social_facebook"),
+  socialTiktok: text("social_tiktok"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("brands_company_idx").on(t.companyId),
+  companySlugUnique: uniqueIndex("brands_company_slug_unique").on(t.companyId, t.slug),
+}));
+
+export type Brand = typeof brands.$inferSelect;
+export type NewBrand = typeof brands.$inferInsert;
+
+export const branchTypeEnum = pgEnum("branch_type", ["sede", "sucursal", "oficina", "almacen", "punto_venta", "otro"]);
+
+export const branches = pgTable("branches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  code: text("code").notNull(),
+  type: branchTypeEnum("type").notNull().default("sucursal"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  country: text("country").default("Argentina"),
+  postalCode: text("postal_code"),
+  phone: text("phone"),
+  email: text("email"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  isActive: boolean("is_active").notNull().default(true),
+  isHeadquarters: boolean("is_headquarters").notNull().default(false),
+  openingHours: jsonb("opening_hours").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("branches_company_idx").on(t.companyId),
+  brandIdx: index("branches_brand_idx").on(t.brandId),
+  companyCodeUnique: uniqueIndex("branches_company_code_unique").on(t.companyId, t.code),
+}));
+
+export type Branch = typeof branches.$inferSelect;
+export type NewBranch = typeof branches.$inferInsert;
+
+export const profileTypeEnum = pgEnum("profile_type", ["commercial", "talent", "hybrid"]);
+
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
+  branchId: uuid("branch_id").references(() => branches.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  type: profileTypeEnum("type").notNull(),
+  description: text("description"),
+  responsibleUserId: uuid("responsible_user_id").references(() => users.id, { onDelete: "set null" }),
+  settings: jsonb("settings").notNull().default({}),
+  kpis: jsonb("kpis").notNull().default({}),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("profiles_company_idx").on(t.companyId),
+  brandIdx: index("profiles_brand_idx").on(t.brandId),
+  branchIdx: index("profiles_branch_idx").on(t.branchId),
+}));
+
+export type Profile = typeof profiles.$inferSelect;
+export type NewProfile = typeof profiles.$inferInsert;
