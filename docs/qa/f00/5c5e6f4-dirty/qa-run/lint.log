@@ -1,0 +1,5 @@
+$ pnpm lint
+exit=0
+durationMs=2224
+
+$ eslint . --max-warnings 0

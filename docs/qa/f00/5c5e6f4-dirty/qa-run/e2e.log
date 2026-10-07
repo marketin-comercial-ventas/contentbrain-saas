@@ -1,0 +1,13 @@
+$ pnpm test:e2e
+exit=0
+durationMs=3022
+
+
+Running 3 tests using 3 workers
+
+  ok 2 [chromium] › tests\e2e\smoke.spec.ts:12:5 › GET /api/health cumple el contrato compartido (48ms)
+  ok 3 [chromium] › tests\e2e\smoke.spec.ts:21:5 › cabeceras de seguridad presentes en la respuesta (45ms)
+  ok 1 [chromium] › tests\e2e\smoke.spec.ts:4:5 › la página principal responde 200 y muestra el encabezado (236ms)
+
+  3 passed (2.2s)
+$ playwright test

@@ -1,0 +1,5 @@
+$ pnpm typecheck
+exit=0
+durationMs=1763
+
+$ tsc --noEmit
