@@ -824,3 +824,172 @@ export const profiles = pgTable("profiles", {
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
+
+/* ===================== F06 Rules Engine ===================== */
+
+export const ruleTriggerEnum = pgEnum("rule_trigger", ["manual", "scheduled", "event", "webhook", "api", "cron"]);
+
+export const ruleStatusEnum = pgEnum("rule_status", ["draft", "active", "paused", "archived", "error"]);
+
+export const actionTypeEnum = pgEnum("action_type", ["notification", "email", "webhook", "api_call", "create_record", "update_record", "delete_record", "assign_task", "send_message", "generate_content", "run_workflow", "custom"]);
+
+export const conditionOperatorEnum = pgEnum("condition_operator", ["equals", "not_equals", "contains", "not_contains", "greater_than", "less_than", "greater_equal", "less_equal", "in", "not_in", "exists", "not_exists", "matches_regex", "is_empty", "is_not_empty"]);
+
+export const rules = pgTable("rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  trigger: ruleTriggerEnum("trigger").notNull(),
+  triggerConfig: jsonb("trigger_config").notNull().default({}),
+  status: ruleStatusEnum("status").notNull().default("draft"),
+  priority: integer("priority").default(0),
+  conditions: jsonb("conditions").notNull().default({}),
+  actions: jsonb("actions").notNull().default([]),
+  executionCount: integer("execution_count").notNull().default(0),
+  lastExecutedAt: timestamp("last_executed_at", { withTimezone: true }),
+  lastExecutionStatus: text("last_execution_status"),
+  lastExecutionError: text("last_execution_error"),
+  executionTimeoutMs: integer("execution_timeout_ms").default(30000),
+  maxRetries: integer("max_retries").default(3),
+  retryDelayMs: integer("retry_delay_ms").default(1000),
+  tags: jsonb("tags").default([]),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("rules_company_idx").on(t.companyId),
+  companySlugUnique: uniqueIndex("rules_company_slug_unique").on(t.companyId, t.slug),
+  statusIdx: index("rules_status_idx").on(t.status),
+  triggerIdx: index("rules_trigger_idx").on(t.trigger),
+}));
+
+export type Rule = typeof rules.$inferSelect;
+export type NewRule = typeof rules.$inferInsert;
+
+export const ruleExecutions = pgTable("rule_executions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  ruleId: uuid("rule_id")
+    .notNull()
+    .references(() => rules.id, { onDelete: "cascade" }),
+  triggerData: jsonb("trigger_data").notNull().default({}),
+  context: jsonb("context").notNull().default({}),
+  status: text("status").notNull().default("pending"),
+  result: jsonb("result").default({}),
+  error: text("error"),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  durationMs: integer("duration_ms"),
+  retryCount: integer("retry_count").default(0),
+  meta: jsonb("meta").default({}),
+}, (t) => ({
+  companyIdx: index("executions_company_idx").on(t.companyId),
+  ruleIdx: index("executions_rule_idx").on(t.ruleId),
+  statusIdx: index("executions_status_idx").on(t.status),
+  startedIdx: index("executions_started_idx").on(t.startedAt),
+}));
+
+export type RuleExecution = typeof ruleExecutions.$inferSelect;
+export type NewRuleExecution = typeof ruleExecutions.$inferInsert;
+
+export const ruleTemplates = pgTable("rule_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  category: text("category"),
+  trigger: ruleTriggerEnum("trigger").notNull(),
+  triggerConfig: jsonb("trigger_config").notNull().default({}),
+  conditions: jsonb("conditions").notNull().default({}),
+  actions: jsonb("actions").notNull().default([]),
+  isPublic: boolean("is_public").notNull().default(false),
+  tags: jsonb("tags").default([]),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("templates_company_idx").on(t.companyId),
+  companySlugUnique: uniqueIndex("templates_company_slug_unique").on(t.companyId, t.slug),
+  isPublicIdx: index("templates_public_idx").on(t.isPublic),
+}));
+
+export type RuleTemplate = typeof ruleTemplates.$inferSelect;
+export type NewRuleTemplate = typeof ruleTemplates.$inferInsert;
+
+export const workflows = pgTable("workflows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("draft"),
+  nodes: jsonb("nodes").notNull().default([]),
+  edges: jsonb("edges").notNull().default([]),
+  variables: jsonb("variables").default({}),
+  settings: jsonb("settings").default({}),
+  version: integer("version").default(1),
+  isPublished: boolean("is_published").notNull().default(false),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("workflows_company_idx").on(t.companyId),
+  companySlugUnique: uniqueIndex("workflows_company_slug_unique").on(t.companyId, t.slug),
+  statusIdx: index("workflows_status_idx").on(t.status),
+}));
+
+export type Workflow = typeof workflows.$inferSelect;
+export type NewWorkflow = typeof workflows.$inferInsert;
+
+export const workflowExecutions = pgTable("workflow_executions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  workflowId: uuid("workflow_id")
+    .notNull()
+    .references(() => workflows.id, { onDelete: "cascade" }),
+  inputData: jsonb("input_data").notNull().default({}),
+  status: text("status").notNull().default("pending"),
+  currentNodeId: text("current_node_id"),
+  result: jsonb("result").default({}),
+  error: text("error"),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  durationMs: integer("duration_ms"),
+  meta: jsonb("meta").default({}),
+}, (t) => ({
+  companyIdx: index("workflow_executions_company_idx").on(t.companyId),
+  workflowIdx: index("workflow_executions_workflow_idx").on(t.workflowId),
+  statusIdx: index("workflow_executions_status_idx").on(t.status),
+}));
+
+export type WorkflowExecution = typeof workflowExecutions.$inferSelect;
+export type NewWorkflowExecution = typeof workflowExecutions.$inferInsert;
+
+/* ===================== Fin Rules Engine ===================== */

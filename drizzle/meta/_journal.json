@@ -50,6 +50,13 @@
       "when": 1791404000000,
       "tag": "0006_f05_audiences_advanced",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791405000000,
+      "tag": "0007_f06_rules_engine",
+      "breakpoints": true
     }
   ]
 }
