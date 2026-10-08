@@ -1,7 +1,7 @@
 {
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm config set allow-builds embedded-postgres && pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install --frozen-lockfile --dangerously-allow-all-builds",
   "framework": "nextjs",
   "regions": ["iad1"],
   "functions": {
