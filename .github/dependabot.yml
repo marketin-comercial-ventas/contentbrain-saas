@@ -1,0 +1,93 @@
+version: 2
+updates:
+  # pnpm dependencies
+  - package-ecosystem: "pnpm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Mexico_City"
+    labels:
+      - "dependencies"
+      - "pnpm"
+    commit-message:
+      prefix: "chore(deps): "
+      prefix-development: "chore(deps-dev): "
+    groups:
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "vitest"
+          - "playwright"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "prettier"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      ai-providers:
+        patterns:
+          - "openai"
+          - "@anthropic-ai/sdk"
+          - "@google/generative-ai"
+          - "cohere-ai"
+          - "mistral"
+          - "groq"
+        update-types:
+          - "minor"
+          - "patch"
+      testing:
+        patterns:
+          - "vitest"
+          - "@playwright/test"
+          - "@testing-library/*"
+        update-types:
+          - "minor"
+          - "patch"
+      linting:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "prettier"
+        update-types:
+          - "minor"
+          - "patch"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">=5.0.0 <5.5.0"]
+    commit-message:
+      include: "scope"
+    rebase-strategy: "auto"
+    open-pull-requests-limit: 10
+    assignees: []
+    reviewers: []
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Mexico_City"
+    labels:
+      - "github-actions"
+      - "dependencies"
+    commit-message:
+      prefix: "ci(deps): "
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    allow:
+      - dependency-type: "direct"
+    ignore: []
+    rebase-strategy: "auto"

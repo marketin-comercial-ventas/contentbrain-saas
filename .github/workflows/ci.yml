@@ -1,27 +1,44 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
 # NOTA: este workflow existe desde F00 pero el repositorio aún no tiene remoto.
 # La protección con checks obligatorios en GitHub queda PENDIENTE hasta que se
 # configure el remoto (bloqueo documentado en docs/qa/f00/).
+
+env:
+  NODE_VERSION: '26'
+  PNPM_VERSION: '11.23.0'
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+  MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
+  OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+
 jobs:
-  checks:
+  lint-and-typecheck:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.23.0
+          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 26
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Instalar dependencias (lockfile congelado)
@@ -33,31 +50,249 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unitarias
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit Tests
         run: pnpm test:unit
 
-      - name: Build de producción
+  build:
+    name: Build Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [lint-and-typecheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Production
         run: pnpm build
 
-      - name: Integración (PostgreSQL real aislado)
+  integration-tests:
+    name: Integration Tests (PostgreSQL real)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [lint-and-typecheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar PostgreSQL
+        uses: supercharge-labs/postgresql-action@v1
+        with:
+          postgresql version: '17'
+          postgresql db: 'app_test'
+          postgresql user: 'postgres'
+          postgresql password: 'password'
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Integration Tests
         run: pnpm test:integration
 
-      - name: Seguridad
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint-and-typecheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Security Tests
         run: pnpm test:security
 
-      - name: Playwright (navegador)
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build, integration-tests, security-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Instalar Playwright (Chromium)
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: E2E
+      - name: Build para E2E
+        run: pnpm build
+
+      - name: E2E Tests
         run: pnpm test:e2e
 
-      - name: Gate (modo CI: sin aprobación QA aún)
-        run: pnpm quality:gate --module f00 --allow-pending-qa
+  regression:
+    name: Regression Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [integration-tests, security-tests, e2e-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar PostgreSQL
+        uses: supercharge-labs/postgresql-action@v1
+        with:
+          postgresql version: '17'
+          postgresql db: 'app_test'
+          postgresql user: 'postgres'
+          postgresql password: 'password'
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Regression Suite
+        run: pnpm test:regression
+
+  gate:
+    name: Quality Gate (Latest Module)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [regression]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Quality Gate (Latest Module)
+        run: |
+          LATEST_MODULE=$(ls -d docs/modules/f* | sort -V | tail -1 | xargs basename | sed 's/\.md$//')
+          echo "Running gate for module: $LATEST_MODULE"
+          pnpm quality:gate --module $LATEST_MODULE --allow-pending-qa
 
       - name: Subir evidencia del gate
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gate-evidence
-          path: docs/qa/f00/**
-          if-no-files-found: error
+          name: gate-evidence-${{ github.run_id }}
+          path: docs/qa/**/report.json
+          if-no-files-found: warn
+
+  deploy-preview:
+    name: Deploy Preview (Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod=false'
+
+  deploy-production:
+    name: Deploy Production (Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [gate]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod=true'
+
+  notify:
+    name: Notify (Slack/Discord)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [deploy-preview, deploy-production]
+    if: always()
+    steps:
+      - name: Notify Result
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          STATUS="${{ job.status }}"
+          REPO="${{ github.repository }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"CI/CD *${STATUS}* for ${REPO}: <${RUN_URL}|View Run>\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
