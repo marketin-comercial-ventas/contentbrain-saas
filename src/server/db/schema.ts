@@ -411,6 +411,148 @@ export const audiences = pgTable("audiences", {
 export type Audience = typeof audiences.$inferSelect;
 export type NewAudience = typeof audiences.$inferInsert;
 
+/* ===================== F05 Audiencias Avanzadas ===================== */
+
+export const segmentTypeEnum = pgEnum("segment_type", ["demographic", "behavioral", "psychographic", "firmographic", "technographic", "custom"]);
+
+export const segmentStatusEnum = pgEnum("segment_status", ["draft", "active", "archived"]);
+
+export const audienceSegments = pgTable("audience_segments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  audienceId: uuid("audience_id")
+    .notNull()
+    .references(() => audiences.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  type: segmentTypeEnum("type").notNull(),
+  status: segmentStatusEnum("status").notNull().default("draft"),
+  criteria: jsonb("criteria").notNull().default({}),
+  estimatedSize: integer("estimated_size"),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("segments_company_idx").on(t.companyId),
+  audienceIdx: index("segments_audience_idx").on(t.audienceId),
+  audienceSlugUnique: uniqueIndex("segments_audience_slug_unique").on(t.audienceId, t.slug),
+}));
+
+export type AudienceSegment = typeof audienceSegments.$inferSelect;
+export type NewAudienceSegment = typeof audienceSegments.$inferInsert;
+
+export const candidatePersonaStatusEnum = pgEnum("candidate_persona_status", ["draft", "active", "archived"]);
+
+export const candidatePersonas = pgTable("candidate_personas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  vacancyId: uuid("vacancy_id").references(() => vacancies.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary"),
+  demographics: jsonb("demographics").notNull().default({}),
+  skills: jsonb("skills").notNull().default([]),
+  experience: jsonb("experience").notNull().default({}),
+  motivations: jsonb("motivations").notNull().default([]),
+  painPoints: jsonb("pain_points").notNull().default([]),
+  preferredChannels: jsonb("preferred_channels").notNull().default([]),
+  salaryExpectations: jsonb("salary_expectations").default({}),
+  locationPreferences: jsonb("location_preferences").default({}),
+  workStyle: jsonb("work_style").default({}),
+  culturalFit: jsonb("cultural_fit").default({}),
+  redFlags: jsonb("red_flags").default([]),
+  greenFlags: jsonb("green_flags").default([]),
+  scoreWeights: jsonb("score_weights").default({}),
+  status: candidatePersonaStatusEnum("status").notNull().default("draft"),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("candidate_personas_company_idx").on(t.companyId),
+  vacancyIdx: index("candidate_personas_vacancy_idx").on(t.vacancyId),
+  companySlugUnique: uniqueIndex("candidate_personas_company_slug_unique").on(t.companyId, t.slug),
+}));
+
+export type CandidatePersona = typeof candidatePersonas.$inferSelect;
+export type NewCandidatePersona = typeof candidatePersonas.$inferInsert;
+
+export const audienceScoringRules = pgTable("audience_scoring_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  audienceId: uuid("audience_id")
+    .references(() => audiences.id, { onDelete: "cascade" }),
+  segmentId: uuid("segment_id").references(() => audienceSegments.id, { onDelete: "cascade" }),
+  candidatePersonaId: uuid("candidate_persona_id").references(() => candidatePersonas.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  criteria: jsonb("criteria").notNull().default({}),
+  weight: integer("weight").notNull().default(1),
+  operator: text("operator").notNull().default("add"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("scoring_rules_company_idx").on(t.companyId),
+  audienceIdx: index("scoring_rules_audience_idx").on(t.audienceId),
+  segmentIdx: index("scoring_rules_segment_idx").on(t.segmentId),
+  personaIdx: index("scoring_rules_persona_idx").on(t.candidatePersonaId),
+}));
+
+export type AudienceScoringRule = typeof audienceScoringRules.$inferSelect;
+export type NewAudienceScoringRule = typeof audienceScoringRules.$inferInsert;
+
+export const audienceInsights = pgTable("audience_insights", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  audienceId: uuid("audience_id")
+    .notNull()
+    .references(() => audiences.id, { onDelete: "cascade" }),
+  segmentId: uuid("segment_id").references(() => audienceSegments.id, { onDelete: "set null" }),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  data: jsonb("data").notNull().default({}),
+  confidence: integer("confidence").default(0),
+  source: text("source").default("ai"),
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("insights_company_idx").on(t.companyId),
+  audienceIdx: index("insights_audience_idx").on(t.audienceId),
+  segmentIdx: index("insights_segment_idx").on(t.segmentId),
+}));
+
+export type AudienceInsight = typeof audienceInsights.$inferSelect;
+export type NewAudienceInsight = typeof audienceInsights.$inferInsert;
+
 /* ===================== AI Core / Generación de contenido ===================== */
 
 export const contentTypeEnum = pgEnum("content_type", ["post", "ad", "script", "email", "story", "reel", "article", "hook", "cta", "hashtags"]);

@@ -43,6 +43,13 @@
       "when": 1791403000000,
       "tag": "0005_f04_catalog_advanced",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791404000000,
+      "tag": "0006_f05_audiences_advanced",
+      "breakpoints": true
     }
   ]
 }
