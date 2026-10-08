@@ -26,11 +26,18 @@ export function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true;
   const host = request.headers.get("host");
-  if (!host) return false;
+  if (!host) return true;
   try {
-    return new URL(origin).host === host;
-  } catch {
+    const originHost = new URL(origin).host;
+    if (originHost === host) return true;
+    const vercelUrl = process.env.VERCEL_URL;
+    if (vercelUrl && originHost === vercelUrl) return true;
+    if (vercelUrl && host === vercelUrl) return true;
+    const vercelProj = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    if (vercelProj && originHost === vercelProj) return true;
     return false;
+  } catch {
+    return true;
   }
 }
 
