@@ -21,7 +21,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (response.ok) {
-      router.push("/");
+      router.push("/dashboard");
       return;
     }
     const body = await response.json().catch(() => null);
