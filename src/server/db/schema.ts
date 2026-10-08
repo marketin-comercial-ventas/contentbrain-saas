@@ -993,3 +993,169 @@ export type WorkflowExecution = typeof workflowExecutions.$inferSelect;
 export type NewWorkflowExecution = typeof workflowExecutions.$inferInsert;
 
 /* ===================== Fin Rules Engine ===================== */
+
+/* ===================== F07 AI Core Extended ===================== */
+
+export const aiProviderEnum = pgEnum("ai_provider", ["openai", "anthropic", "google", "cohere", "mistral", "groq", "ollama"]);
+
+export const aiRequestTypeEnum = pgEnum("ai_request_type", ["completion", "chat", "embedding", "image", "audio", "evaluation", "moderation", "fine_tuning"]);
+
+export const aiConsumption = pgTable("ai_consumption", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  provider: aiProviderEnum("provider").notNull(),
+  model: text("model").notNull(),
+  requestType: aiRequestTypeEnum("request_type").notNull(),
+  promptTokens: integer("prompt_tokens").notNull().default(0),
+  completionTokens: integer("completion_tokens").notNull().default(0),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  estimatedCostUsd: integer("estimated_cost_usd").notNull().default(0),
+  promptHash: text("prompt_hash"),
+  responseHash: text("response_hash"),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("ai_consumption_company_idx").on(t.companyId),
+  userIdx: index("ai_consumption_user_idx").on(t.userId),
+  providerIdx: index("ai_consumption_provider_idx").on(t.provider),
+  modelIdx: index("ai_consumption_model_idx").on(t.model),
+  typeIdx: index("ai_consumption_type_idx").on(t.requestType),
+  createdIdx: index("ai_consumption_created_idx").on(t.createdAt),
+}));
+
+export type AIConsumption = typeof aiConsumption.$inferSelect;
+export type NewAIConsumption = typeof aiConsumption.$inferInsert;
+
+export const aiModelConfigs = pgTable("ai_model_configs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  provider: aiProviderEnum("provider").notNull(),
+  model: text("model").notNull(),
+  displayName: text("display_name"),
+  isDefault: boolean("is_default").notNull().default(false),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  maxTokens: integer("max_tokens"),
+  defaultTemperature: integer("default_temperature").default(70), // 0.7 * 100
+  defaultTopP: integer("default_top_p").default(90), // 0.9 * 100
+  costPer1kPromptTokens: integer("cost_per_1k_prompt_tokens").default(0),
+  costPer1kCompletionTokens: integer("cost_per_1k_completion_tokens").default(0),
+  maxTokensPerRequest: integer("max_tokens_per_request"),
+  supportsStreaming: boolean("supports_streaming").default(true),
+  supportsTools: boolean("supports_tools").default(false),
+  supportsVision: boolean("supports_vision").default(false),
+  supportsJsonMode: boolean("supports_json_mode").default(false),
+  rateLimitRpm: integer("rate_limit_rpm").default(60),
+  rateLimitTpm: integer("rate_limit_tpm").default(100000),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("model_configs_company_idx").on(t.companyId),
+  providerIdx: index("model_configs_provider_idx").on(t.provider),
+  companyModelUnique: uniqueIndex("model_configs_company_model_unique").on(t.companyId, t.provider, t.model),
+}));
+
+export type AIModelConfig = typeof aiModelConfigs.$inferSelect;
+export type NewAIModelConfig = typeof aiModelConfigs.$inferInsert;
+
+export const aiPromptTemplates = pgTable("ai_prompt_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  systemPrompt: text("system_prompt"),
+  userPromptTemplate: text("user_prompt_template").notNull(),
+  variables: jsonb("variables").notNull().default([]),
+  modelConfigId: uuid("model_config_id").references(() => aiModelConfigs.id, { onDelete: "set null" }),
+  defaultOptions: jsonb("default_options").default({}),
+  tags: jsonb("tags").default([]),
+  isPublic: boolean("is_public").notNull().default(false),
+  version: integer("version").default(1),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("prompt_templates_company_idx").on(t.companyId),
+  companySlugUnique: uniqueIndex("prompt_templates_company_slug_unique").on(t.companyId, t.slug),
+}));
+
+export type AIPromptTemplate = typeof aiPromptTemplates.$inferSelect;
+export type NewAIPromptTemplate = typeof aiPromptTemplates.$inferInsert;
+
+export const aiEvaluations = pgTable("ai_evaluations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  consumptionId: uuid("consumption_id").references(() => aiConsumption.id, { onDelete: "set null" }),
+  promptHash: text("prompt_hash").notNull(),
+  responseHash: text("response_hash").notNull(),
+  evaluatorProvider: aiProviderEnum("evaluator_provider").notNull(),
+  evaluatorModel: text("evaluator_model").notNull(),
+  criteria: jsonb("criteria").notNull().default({}),
+  score: integer("score").notNull(),
+  reasoning: text("reasoning"),
+  passed: boolean("passed").notNull(),
+  meta: jsonb("meta").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("evaluations_company_idx").on(t.companyId),
+  consumptionIdx: index("evaluations_consumption_idx").on(t.consumptionId),
+}));
+
+export type AIEvaluation = typeof aiEvaluations.$inferSelect;
+export type NewAIEvaluation = typeof aiEvaluations.$inferInsert;
+
+export const aiCache = pgTable("ai_cache", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  promptHash: text("prompt_hash").notNull(),
+  model: text("model").notNull(),
+  provider: aiProviderEnum("provider").notNull(),
+  response: jsonb("response").notNull(),
+  tokensUsed: integer("tokens_used"),
+  costUsd: integer("cost_usd").default(0),
+  hitCount: integer("hit_count").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("ai_cache_company_idx").on(t.companyId),
+  promptHashIdx: index("ai_cache_prompt_hash_idx").on(t.promptHash),
+  modelIdx: index("ai_cache_model_idx").on(t.model),
+  providerIdx: index("ai_cache_provider_idx").on(t.provider),
+  expiresIdx: index("ai_cache_expires_idx").on(t.expiresAt),
+  uniqueCache: uniqueIndex("ai_cache_unique").on(t.companyId, t.promptHash, t.model, t.provider),
+}));
+
+export type AICache = typeof aiCache.$inferSelect;
+export type NewAICache = typeof aiCache.$inferInsert;
+
+/* ===================== Fin F07 AI Core Extended ===================== */
