@@ -39,6 +39,9 @@
     "tailwind-merge": "^3.7.0",
     "zod": "4.6.5"
   },
+  "pnpm": {
+    "allowedBuilds": ["embedded-postgres"]
+  },
   "devDependencies": {
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
