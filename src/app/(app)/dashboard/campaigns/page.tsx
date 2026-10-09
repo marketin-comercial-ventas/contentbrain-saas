@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Target, Calendar, CalendarDays } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const channels = ["facebook", "instagram", "linkedin", "twitter", "tiktok", "email", "whatsapp", "web", "otro"] as const;
 const statuses = ["draft", "active", "paused", "completed", "archived"] as const;
@@ -30,8 +30,7 @@ interface Product { id: string; name: string; }
 interface Audience { id: string; name: string; }
 
 export default function CampaignsPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [audiences, setAudiences] = useState<Audience[]>([]);
@@ -50,6 +49,7 @@ export default function CampaignsPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/campaigns`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
@@ -86,7 +86,8 @@ export default function CampaignsPage() {
 
   const resetForm = () => setForm({ name: "", objective: "", productId: "", audienceId: "", channel: "web", startDate: "", endDate: "", status: "draft" });
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

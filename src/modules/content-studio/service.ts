@@ -23,13 +23,21 @@ export async function generateContent(input: {
   if (!brain) throw new Error("Company Brain no configurado");
 
   let product = null;
-  if (input.productId) product = await getProductById(input.productId);
+  if (input.productId) {
+    product = await getProductById(input.productId, input.companyId);
+    if (!product) throw new Error("PRODUCT_NOT_FOUND");
+  }
 
   let audience = null;
-  if (input.audienceId) audience = await getAudienceById(input.audienceId);
+  if (input.audienceId) {
+    audience = await getAudienceById(input.audienceId, input.companyId);
+    if (!audience) throw new Error("AUDIENCE_NOT_FOUND");
+  }
 
-  let campaign = null;
-  if (input.campaignId) campaign = await getCampaignById(input.campaignId);
+  if (input.campaignId) {
+    const campaign = await getCampaignById(input.campaignId, input.companyId);
+    if (!campaign) throw new Error("CAMPAIGN_NOT_FOUND");
+  }
 
   const prompt = buildContentGenerationPrompt({
     companyBrain: brain,
@@ -72,8 +80,11 @@ export async function generateContent(input: {
   return content;
 }
 
-export async function getContentById(id: string): Promise<GeneratedContent | null> {
-  const [content] = await db.select().from(generatedContent).where(eq(generatedContent.id, id)).limit(1);
+export async function getContentById(id: string, companyId?: string): Promise<GeneratedContent | null> {
+  const condition = companyId
+    ? and(eq(generatedContent.id, id), eq(generatedContent.companyId, companyId))
+    : eq(generatedContent.id, id);
+  const [content] = await db.select().from(generatedContent).where(condition).limit(1);
   return content ?? null;
 }
 
@@ -85,18 +96,24 @@ export async function getContentByCompany(companyId: string, filters?: { type?: 
   return db.select().from(generatedContent).where(and(...conditions)).orderBy(desc(generatedContent.createdAt));
 }
 
-export async function updateContent(id: string, data: Partial<Omit<NewGeneratedContent, "companyId">>): Promise<GeneratedContent | null> {
-  const [content] = await db.update(generatedContent).set({ ...data, updatedAt: new Date() }).where(eq(generatedContent.id, id)).returning();
+export async function updateContent(id: string, data: Partial<Omit<NewGeneratedContent, "companyId">>, companyId?: string): Promise<GeneratedContent | null> {
+  const condition = companyId
+    ? and(eq(generatedContent.id, id), eq(generatedContent.companyId, companyId))
+    : eq(generatedContent.id, id);
+  const [content] = await db.update(generatedContent).set({ ...data, updatedAt: new Date() }).where(condition).returning();
   return content ?? null;
 }
 
-export async function deleteContent(id: string): Promise<boolean> {
-  const result = await db.delete(generatedContent).where(eq(generatedContent.id, id));
-  return (result.rowCount ?? 0) > 0;
+export async function deleteContent(id: string, companyId?: string): Promise<boolean> {
+  const condition = companyId
+    ? and(eq(generatedContent.id, id), eq(generatedContent.companyId, companyId))
+    : eq(generatedContent.id, id);
+  const result = await db.delete(generatedContent).where(condition);
+  return result.length > 0;
 }
 
-export async function regenerateContent(id: string, variantsCount?: number): Promise<GeneratedContent | null> {
-  const existing = await getContentById(id);
+export async function regenerateContent(id: string, variantsCount?: number, companyId?: string): Promise<GeneratedContent | null> {
+  const existing = await getContentById(id, companyId);
   if (!existing) return null;
 
   return generateContent({

@@ -2,17 +2,17 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Page from "@/app/page";
 
-describe("página principal de Foundation", () => {
-  it("muestra el encabezado de la plataforma", () => {
+describe("página principal de ContentBrain", () => {
+  it("muestra el encabezado comercial de la plataforma", () => {
     render(<Page />);
     expect(
-      screen.getByRole("heading", { name: /Plataforma Growth · Sales · Talent/ }),
+      screen.getByRole("heading", { name: /Haz crecer tu negocio con inteligencia/ }),
     ).toBeInTheDocument();
   });
 
-  it("enlaza al endpoint de salud", () => {
+  it("ofrece acceso al registro y login", () => {
     render(<Page />);
-    const link = screen.getByRole("link", { name: "/api/health" });
-    expect(link).toHaveAttribute("href", "/api/health");
+    expect(screen.getByRole("link", { name: "Crear cuenta" })).toHaveAttribute("href", "/registro");
+    expect(screen.getByRole("link", { name: "Iniciar sesión" })).toHaveAttribute("href", "/login");
   });
 });

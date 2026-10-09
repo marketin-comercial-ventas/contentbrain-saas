@@ -23,5 +23,5 @@ export async function upsertCompanyBrain(companyId: string, data: Omit<NewCompan
 
 export async function deleteCompanyBrain(companyId: string): Promise<boolean> {
   const result = await db.delete(companyBrain).where(eq(companyBrain.companyId, companyId));
-  return (result.rowCount ?? 0) > 0;
+  return result.length > 0;
 }

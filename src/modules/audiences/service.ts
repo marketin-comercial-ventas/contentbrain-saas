@@ -11,8 +11,11 @@ export async function createAudience(companyId: string, data: Omit<NewAudience, 
   return audience;
 }
 
-export async function getAudienceById(id: string): Promise<Audience | null> {
-  const [audience] = await db.select().from(audiences).where(eq(audiences.id, id)).limit(1);
+export async function getAudienceById(id: string, companyId?: string): Promise<Audience | null> {
+  const condition = companyId
+    ? and(eq(audiences.id, id), eq(audiences.companyId, companyId))
+    : eq(audiences.id, id);
+  const [audience] = await db.select().from(audiences).where(condition).limit(1);
   return audience ?? null;
 }
 
@@ -20,13 +23,19 @@ export async function getAudiencesByCompany(companyId: string): Promise<Audience
   return db.select().from(audiences).where(eq(audiences.companyId, companyId)).orderBy(desc(audiences.createdAt));
 }
 
-export async function updateAudience(id: string, data: Partial<Omit<NewAudience, "companyId">>): Promise<Audience | null> {
-  const [audience] = await db.update(audiences).set({ ...data, updatedAt: new Date() }).where(eq(audiences.id, id)).returning();
+export async function updateAudience(id: string, data: Partial<Omit<NewAudience, "companyId">>, companyId?: string): Promise<Audience | null> {
+  const condition = companyId
+    ? and(eq(audiences.id, id), eq(audiences.companyId, companyId))
+    : eq(audiences.id, id);
+  const [audience] = await db.update(audiences).set({ ...data, updatedAt: new Date() }).where(condition).returning();
   return audience ?? null;
 }
 
-export async function deleteAudience(id: string): Promise<boolean> {
-  const result = await db.delete(audiences).where(eq(audiences.id, id));
+export async function deleteAudience(id: string, companyId?: string): Promise<boolean> {
+  const condition = companyId
+    ? and(eq(audiences.id, id), eq(audiences.companyId, companyId))
+    : eq(audiences.id, id);
+  const result = await db.delete(audiences).where(condition);
   return (result.rowsAffected ?? 0) > 0;
 }
 
@@ -36,7 +45,7 @@ export async function generateAudienceWithAI(companyId: string, productId: strin
 
   let product = null;
   if (productId) {
-    product = await getProductById(productId);
+    product = await getProductById(productId, companyId);
   }
 
   const prompt = buildAudienceGenerationPrompt(brain, product, brief);

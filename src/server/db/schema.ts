@@ -179,12 +179,18 @@ export const products = pgTable("products", {
   brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
   categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   name: text("name").notNull(),
-  slug: text("slug").notNull(),
+  // `slug` was added after the original catalog migration and is nullable
+  // for legacy rows; the service derives it for new products.
+  slug: text("slug"),
   description: text("description"),
   shortDescription: text("short_description"),
   category: productCategoryEnum("category").notNull().default("producto"),
   status: productStatusEnum("status").notNull().default("draft"),
-  basePrice: integer("base_price").notNull().default(0),
+  // `price` is the canonical application field and maps to the newer
+  // base_price column. `legacyPrice` keeps the original price column during
+  // the compatibility window so existing values are never discarded.
+  price: integer("base_price").notNull().default(0),
+  legacyPrice: integer("price").notNull().default(0),
   compareAtPrice: integer("compare_at_price"),
   costPrice: integer("cost_price"),
   currency: text("currency").notNull().default("USD"),

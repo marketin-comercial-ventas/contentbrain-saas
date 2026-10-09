@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import {
   clientIp,
+  isSameOrigin,
   jsonError,
   SESSION_COOKIE,
   sessionCookieOptions,
@@ -11,6 +12,9 @@ import { AuthError, loginUser } from "@/modules/identity/service";
 import { createDb } from "@/server/db/client";
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOrigin(request)) {
+    return jsonError(403, "BAD_ORIGIN", "Origen no permitido");
+  }
   let body: any;
   try {
     body = await request.json();

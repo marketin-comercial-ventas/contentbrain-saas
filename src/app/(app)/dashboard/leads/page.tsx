@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit, Trash2, Briefcase, Users, Mail, Phone, ArrowRight, ArrowLeft, Filter } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const sources = ["website", "facebook", "instagram", "linkedin", "referral", "cold_call", "email", "event", "ads", "organic", "otro"] as const;
 const statuses = ["nuevo", "contactado", "calificado", "propuesta", "ganado", "perdido"] as const;
@@ -29,8 +29,7 @@ interface Lead {
 }
 
 export default function LeadsPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -49,6 +48,7 @@ export default function LeadsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("");
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     const url = filterStatus ? `/api/companies/${companyId}/leads?status=${filterStatus}` : `/api/companies/${companyId}/leads`;
     fetch(url).then(r => r.json()).then(data => { setLeads(data.leads); setLoading(false); });
   }, [companyId, filterStatus]);
@@ -89,7 +89,8 @@ export default function LeadsPage() {
 
   const resetForm = () => setForm({ name: "", phone: "", email: "", company: "", source: "organic", status: "nuevo", assignedTo: "", notes: "", value: 0 });
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   const leadsByStatus = statuses.reduce((acc, s) => ({ ...acc, [s]: leads.filter(l => l.status === s) }), {} as Record<string, Lead[]>);
 

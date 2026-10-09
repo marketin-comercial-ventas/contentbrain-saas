@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Building2, Users, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useCompany } from "@/components/company-provider";
 
 interface Company {
   id: string;
@@ -22,6 +23,7 @@ interface Company {
 }
 
 export default function CompaniesPage() {
+  const { refreshCompanies } = useCompany();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -46,6 +48,7 @@ export default function CompaniesPage() {
     if (res.ok) {
       const data = await res.json();
       setCompanies([...companies, data.company]);
+      await refreshCompanies();
       setName("");
       setShowForm(false);
     }

@@ -1,11 +1,14 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { clientIp, jsonError } from "@/modules/identity/http";
+import { clientIp, isSameOrigin, jsonError } from "@/modules/identity/http";
 import { rateLimit } from "@/modules/identity/rate-limit";
 import { AuthError, registerUser } from "@/modules/identity/service";
 import { createDb } from "@/server/db/client";
 
 export async function POST(request: Request): Promise<NextResponse> {
+  if (!isSameOrigin(request)) {
+    return jsonError(403, "BAD_ORIGIN", "Origen no permitido");
+  }
   const limit = rateLimit(`register:${clientIp(request)}`, { limit: 20, windowMs: 60_000 });
   if (!limit.allowed) {
     return jsonError(429, "RATE_LIMITED", "Demasiadas solicitudes, intenta más tarde");

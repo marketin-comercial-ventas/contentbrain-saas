@@ -7,8 +7,11 @@ export async function createLead(companyId: string, data: Omit<NewLead, "company
   return lead;
 }
 
-export async function getLeadById(id: string): Promise<Lead | null> {
-  const [lead] = await db.select().from(leads).where(eq(leads.id, id)).limit(1);
+export async function getLeadById(id: string, companyId?: string): Promise<Lead | null> {
+  const condition = companyId
+    ? and(eq(leads.id, id), eq(leads.companyId, companyId))
+    : eq(leads.id, id);
+  const [lead] = await db.select().from(leads).where(condition).limit(1);
   return lead ?? null;
 }
 
@@ -20,19 +23,28 @@ export async function getLeadsByCompany(companyId: string, filters?: { status?: 
   return db.select().from(leads).where(and(...conditions)).orderBy(desc(leads.createdAt));
 }
 
-export async function updateLead(id: string, data: Partial<Omit<NewLead, "companyId">>): Promise<Lead | null> {
-  const [lead] = await db.update(leads).set({ ...data, updatedAt: new Date() }).where(eq(leads.id, id)).returning();
+export async function updateLead(id: string, data: Partial<Omit<NewLead, "companyId">>, companyId?: string): Promise<Lead | null> {
+  const condition = companyId
+    ? and(eq(leads.id, id), eq(leads.companyId, companyId))
+    : eq(leads.id, id);
+  const [lead] = await db.update(leads).set({ ...data, updatedAt: new Date() }).where(condition).returning();
   return lead ?? null;
 }
 
-export async function moveLead(id: string, status: Lead["status"]): Promise<Lead | null> {
-  const [lead] = await db.update(leads).set({ status, updatedAt: new Date() }).where(eq(leads.id, id)).returning();
+export async function moveLead(id: string, status: Lead["status"], companyId?: string): Promise<Lead | null> {
+  const condition = companyId
+    ? and(eq(leads.id, id), eq(leads.companyId, companyId))
+    : eq(leads.id, id);
+  const [lead] = await db.update(leads).set({ status, updatedAt: new Date() }).where(condition).returning();
   return lead ?? null;
 }
 
-export async function deleteLead(id: string): Promise<boolean> {
-  const result = await db.delete(leads).where(eq(leads.id, id));
-  return (result.rowCount ?? 0) > 0;
+export async function deleteLead(id: string, companyId?: string): Promise<boolean> {
+  const condition = companyId
+    ? and(eq(leads.id, id), eq(leads.companyId, companyId))
+    : eq(leads.id, id);
+  const result = await db.delete(leads).where(condition);
+  return result.length > 0;
 }
 
 export async function getLeadPipelineStats(companyId: string): Promise<Record<string, number>> {

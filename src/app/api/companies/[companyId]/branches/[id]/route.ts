@@ -1,18 +1,16 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import { auth, getDbWithRls } from "@/modules/identity/http";
+import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { getBranchById, updateBranch, deleteBranch } from "@/modules/branches/service";
-import { jsonError } from "@/modules/identity/http";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
-  const db = await getDbWithRls(request);
-  if (!db) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
-  const branch = await getBranchById(id);
+  const { companyId, id } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId);
+  if (!authorization.ok) return authorization.response;
+  const branch = await getBranchById(id, companyId);
   if (!branch) return jsonError(404, "NOT_FOUND", "Sucursal no encontrada");
   return NextResponse.json({ branch });
 }
@@ -21,12 +19,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
-  const db = await getDbWithRls(request);
-  if (!db) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
+  const { companyId, id } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId);
+  if (!authorization.ok) return authorization.response;
   const body = await request.json();
-  const branch = await updateBranch(id, body);
+  const branch = await updateBranch(id, body, companyId);
   if (!branch) return jsonError(404, "NOT_FOUND", "Sucursal no encontrada");
   return NextResponse.json({ branch });
 }
@@ -35,11 +32,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
-  const db = await getDbWithRls(request);
-  if (!db) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
-  const deleted = await deleteBranch(id);
+  const { companyId, id } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId);
+  if (!authorization.ok) return authorization.response;
+  const deleted = await deleteBranch(id, companyId);
   if (!deleted) return jsonError(404, "NOT_FOUND", "Sucursal no encontrada");
   return NextResponse.json({ ok: true });
 }

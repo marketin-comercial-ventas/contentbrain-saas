@@ -7,8 +7,11 @@ export async function createVacancy(companyId: string, data: Omit<NewVacancy, "c
   return vacancy;
 }
 
-export async function getVacancyById(id: string): Promise<Vacancy | null> {
-  const [vacancy] = await db.select().from(vacancies).where(eq(vacancies.id, id)).limit(1);
+export async function getVacancyById(id: string, companyId?: string): Promise<Vacancy | null> {
+  const condition = companyId
+    ? and(eq(vacancies.id, id), eq(vacancies.companyId, companyId))
+    : eq(vacancies.id, id);
+  const [vacancy] = await db.select().from(vacancies).where(condition).limit(1);
   return vacancy ?? null;
 }
 
@@ -16,14 +19,20 @@ export async function getVacanciesByCompany(companyId: string): Promise<Vacancy[
   return db.select().from(vacancies).where(eq(vacancies.companyId, companyId)).orderBy(desc(vacancies.createdAt));
 }
 
-export async function updateVacancy(id: string, data: Partial<Omit<NewVacancy, "companyId">>): Promise<Vacancy | null> {
-  const [vacancy] = await db.update(vacancies).set({ ...data, updatedAt: new Date() }).where(eq(vacancies.id, id)).returning();
+export async function updateVacancy(id: string, data: Partial<Omit<NewVacancy, "companyId">>, companyId?: string): Promise<Vacancy | null> {
+  const condition = companyId
+    ? and(eq(vacancies.id, id), eq(vacancies.companyId, companyId))
+    : eq(vacancies.id, id);
+  const [vacancy] = await db.update(vacancies).set({ ...data, updatedAt: new Date() }).where(condition).returning();
   return vacancy ?? null;
 }
 
-export async function deleteVacancy(id: string): Promise<boolean> {
-  const result = await db.delete(vacancies).where(eq(vacancies.id, id));
-  return (result.rowCount ?? 0) > 0;
+export async function deleteVacancy(id: string, companyId?: string): Promise<boolean> {
+  const condition = companyId
+    ? and(eq(vacancies.id, id), eq(vacancies.companyId, companyId))
+    : eq(vacancies.id, id);
+  const result = await db.delete(vacancies).where(condition);
+  return result.length > 0;
 }
 
 export async function createCandidate(companyId: string, data: Omit<NewCandidate, "companyId">): Promise<Candidate> {
@@ -31,8 +40,11 @@ export async function createCandidate(companyId: string, data: Omit<NewCandidate
   return candidate;
 }
 
-export async function getCandidateById(id: string): Promise<Candidate | null> {
-  const [candidate] = await db.select().from(candidates).where(eq(candidates.id, id)).limit(1);
+export async function getCandidateById(id: string, companyId?: string): Promise<Candidate | null> {
+  const condition = companyId
+    ? and(eq(candidates.id, id), eq(candidates.companyId, companyId))
+    : eq(candidates.id, id);
+  const [candidate] = await db.select().from(candidates).where(condition).limit(1);
   return candidate ?? null;
 }
 
@@ -43,19 +55,28 @@ export async function getCandidatesByCompany(companyId: string, filters?: { vaca
   return db.select().from(candidates).where(and(...conditions)).orderBy(desc(candidates.createdAt));
 }
 
-export async function updateCandidate(id: string, data: Partial<Omit<NewCandidate, "companyId">>): Promise<Candidate | null> {
-  const [candidate] = await db.update(candidates).set({ ...data, updatedAt: new Date() }).where(eq(candidates.id, id)).returning();
+export async function updateCandidate(id: string, data: Partial<Omit<NewCandidate, "companyId">>, companyId?: string): Promise<Candidate | null> {
+  const condition = companyId
+    ? and(eq(candidates.id, id), eq(candidates.companyId, companyId))
+    : eq(candidates.id, id);
+  const [candidate] = await db.update(candidates).set({ ...data, updatedAt: new Date() }).where(condition).returning();
   return candidate ?? null;
 }
 
-export async function moveCandidate(id: string, status: Candidate["status"]): Promise<Candidate | null> {
-  const [candidate] = await db.update(candidates).set({ status, updatedAt: new Date() }).where(eq(candidates.id, id)).returning();
+export async function moveCandidate(id: string, status: Candidate["status"], companyId?: string): Promise<Candidate | null> {
+  const condition = companyId
+    ? and(eq(candidates.id, id), eq(candidates.companyId, companyId))
+    : eq(candidates.id, id);
+  const [candidate] = await db.update(candidates).set({ status, updatedAt: new Date() }).where(condition).returning();
   return candidate ?? null;
 }
 
-export async function deleteCandidate(id: string): Promise<boolean> {
-  const result = await db.delete(candidates).where(eq(candidates.id, id));
-  return (result.rowCount ?? 0) > 0;
+export async function deleteCandidate(id: string, companyId?: string): Promise<boolean> {
+  const condition = companyId
+    ? and(eq(candidates.id, id), eq(candidates.companyId, companyId))
+    : eq(candidates.id, id);
+  const result = await db.delete(candidates).where(condition);
+  return result.length > 0;
 }
 
 export async function getVacancyPipelineStats(companyId: string): Promise<Record<string, number>> {

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Building2, MapPin, Phone, Mail, MapPinCheck } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const branchTypes = ["sede", "sucursal", "oficina", "almacen", "punto_venta", "otro"] as const;
 
@@ -35,8 +35,7 @@ interface Branch {
 interface Brand { id: string; name: string; }
 
 export default function BranchesPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +50,7 @@ export default function BranchesPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/branches`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/brands`).then(r => r.json()),
@@ -74,7 +74,8 @@ export default function BranchesPage() {
   const handleDelete = async (id: string) => { if (!confirm("¿Eliminar esta sucursal?")) return; await fetch(`/api/companies/${companyId}/branches/${id}`, { method: "DELETE" }); setBranches(branches.filter(b => b.id !== id)); };
   const resetForm = () => setForm({ name: "", code: "", type: "sucursal", brandId: "", address: "", city: "", state: "", country: "Argentina", postalCode: "", phone: "", email: "", latitude: "", longitude: "", isActive: true, isHeadquarters: false, openingHours: {} });
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

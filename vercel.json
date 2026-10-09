@@ -45,11 +45,5 @@
       "source": "/health",
       "destination": "/api/health"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 3 * * *"
-    }
   ]
 }

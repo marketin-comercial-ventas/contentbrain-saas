@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Users, FileText, Target, Briefcase, Building2, Brain, Package, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { useCompany } from "@/components/company-provider";
 
 interface DashboardMetrics {
   companies: Array<{ id: string; name: string; slug: string; stats: Record<string, number> }>;
@@ -19,20 +20,23 @@ interface DashboardMetrics {
 }
 
 export default function DashboardPage() {
+  const { companyId, loading: companyLoading } = useCompany();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/dashboard")
+    if (companyLoading) return;
+    const query = companyId ? `?companyId=${encodeURIComponent(companyId)}` : "";
+    fetch(`/api/dashboard${query}`)
       .then((res) => res.json())
       .then((data) => {
         setMetrics(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [companyId, companyLoading]);
 
-  if (loading) {
+  if (loading || companyLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Sparkles, Edit, Trash2, Copy, Save, FileText, MessageSquare, Target, Zap } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 interface Content {
   id: string;
@@ -29,8 +29,7 @@ const contentTypes = ["post", "ad", "script", "email", "story", "reel", "article
 const channels = ["facebook", "instagram", "linkedin", "twitter", "tiktok", "email", "whatsapp", "web", "otro"] as const;
 
 export default function ContentStudioPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [content, setContent] = useState<Content[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [audiences, setAudiences] = useState<Audience[]>([]);
@@ -52,6 +51,7 @@ export default function ContentStudioPage() {
   const [selectedVariant, setSelectedVariant] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/content`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
@@ -115,7 +115,8 @@ export default function ContentStudioPage() {
     setStep(1);
   };
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

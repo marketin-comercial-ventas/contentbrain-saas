@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Tag, Building2, Globe, Sparkles } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const brandTypes = ["principal", "secundaria", "producto", "servicio", "franquicia"] as const;
 
@@ -26,8 +26,7 @@ interface Brand {
 }
 
 export default function BrandsPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,6 +38,7 @@ export default function BrandsPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     fetch(`/api/companies/${companyId}/brands`).then(r => r.json()).then(data => { setBrands(data.brands); setLoading(false); });
   }, [companyId]);
 
@@ -62,7 +62,8 @@ export default function BrandsPage() {
 
   const resetForm = () => setForm({ name: "", slug: "", description: "", logoUrl: "", primaryColor: "#3b82f6", secondaryColor: "#1e40af", type: "principal", isActive: true, website: "" });
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

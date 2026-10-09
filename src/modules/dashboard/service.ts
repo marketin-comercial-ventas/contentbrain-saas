@@ -1,11 +1,11 @@
 // @ts-nocheck
-import { db, eq, desc, count } from "@/server/db/client";
+import { db, eq, and, desc, count } from "@/server/db/client";
 import { companies, products, audiences, campaigns, leads, vacancies, candidates, generatedContent, memberships, users } from "@/server/db/schema";
 import { getCompanyStats } from "@/modules/companies/service";
 import { getLeadPipelineStats } from "@/modules/leads/service";
 import { getVacancyPipelineStats } from "@/modules/talent/service";
 
-export async function getDashboardMetrics(userId: string): Promise<{
+export async function getDashboardMetrics(userId: string, companyId?: string): Promise<{
   companies: Array<{ id: string; name: string; slug: string; stats: Record<string, number> }>;
   totals: Record<string, number>;
   leadPipeline: Record<string, number>;
@@ -18,7 +18,21 @@ export async function getDashboardMetrics(userId: string): Promise<{
     .select({ id: companies.id, name: companies.name, slug: companies.slug })
     .from(companies)
     .innerJoin(memberships, eq(companies.id, memberships.companyId))
-    .where(eq(memberships.userId, userId));
+    .where(companyId
+      ? and(eq(memberships.userId, userId), eq(companies.id, companyId))
+      : eq(memberships.userId, userId));
+
+  if (userCompanies.length === 0) {
+    return {
+      companies: [],
+      totals: {},
+      leadPipeline: {},
+      talentPipeline: {},
+      recentContent: [],
+      recentLeads: [],
+      recentCandidates: [],
+    };
+  }
 
   const companyStats = await Promise.all(
     userCompanies.map(async (c) => ({

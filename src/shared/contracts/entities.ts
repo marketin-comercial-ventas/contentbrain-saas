@@ -54,23 +54,59 @@ export const newCompanyBrainSchema = companyBrainSchema.omit({ id: true, company
 export const updateCompanyBrainSchema = newCompanyBrainSchema.partial();
 
 export const productCategorySchema = z.enum(["producto", "servicio", "curso", "suscripcion", "otro"]);
+export const productStatusSchema = z.enum(["draft", "active", "archived", "discontinued"]);
 
+/**
+ * Public product contract. `price` is the canonical API/UI name; the
+ * persistence mapping is handled by the Drizzle schema/service.
+ */
 export const productSchema = z.object({
   id: z.uuid(),
   companyId: z.uuid(),
   name: z.string().min(1).max(200),
+  slug: z.string().min(1).max(200).nullable().optional(),
   description: z.string().max(5000).optional().nullable(),
+  shortDescription: z.string().max(1000).optional().nullable(),
   category: productCategorySchema.default("producto"),
   price: z.number().int().min(0).default(0),
+  /** Legacy input alias; responses and UI use `price`. */
+  basePrice: z.number().int().min(0).optional(),
+  compareAtPrice: z.number().int().min(0).optional().nullable(),
+  costPrice: z.number().int().min(0).optional().nullable(),
   currency: z.string().length(3).default("USD"),
+  sku: z.string().max(100).optional().nullable(),
+  barcode: z.string().max(100).optional().nullable(),
+  weight: z.number().int().min(0).optional().nullable(),
+  dimensions: z.unknown().optional().nullable(),
   benefits: z.array(z.string()).default([]),
   features: z.array(z.string()).default([]),
-  status: z.string().default("active"),
+  specifications: z.unknown().optional().nullable(),
+  tags: z.array(z.string()).default([]),
+  seoTitle: z.string().max(200).optional().nullable(),
+  seoDescription: z.string().max(5000).optional().nullable(),
+  images: z.array(z.string()).default([]),
+  videos: z.array(z.string()).default([]),
+  isFeatured: z.boolean().default(false),
+  isDigital: z.boolean().default(false),
+  digitalFileUrl: z.string().url().optional().nullable(),
+  requiresShipping: z.boolean().default(true),
+  taxable: z.boolean().default(true),
+  taxClass: z.string().max(100).optional().nullable(),
+  trackInventory: z.boolean().default(true),
+  inventoryQuantity: z.number().int().default(0),
+  lowStockThreshold: z.number().int().min(0).optional().nullable(),
+  allowBackorder: z.boolean().default(false),
+  meta: z.unknown().optional().nullable(),
+  status: productStatusSchema.default("draft"),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
 
-export const newProductSchema = productSchema.omit({ id: true, companyId: true, createdAt: true, updatedAt: true });
+// Input keeps price optional so the legacy `basePrice` alias can be used
+// without being overwritten by the output default of zero.
+export const newProductSchema = productSchema
+  .omit({ id: true, companyId: true, createdAt: true, updatedAt: true })
+  .extend({ price: z.number().int().min(0).optional() });
 export const updateProductSchema = newProductSchema.partial();
 
 export const audienceSchema = z.object({

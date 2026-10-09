@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit, Trash2, BriefcaseBusiness, UserPlus, User, Mail, Phone, DollarSign, MapPin, Briefcase } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const modalities = ["presencial", "hibrido", "remoto"] as const;
 const jobStatuses = ["draft", "published", "paused", "closed", "filled"] as const;
@@ -44,8 +44,7 @@ interface Candidate {
 }
 
 export default function TalentPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +61,7 @@ export default function TalentPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/vacancies`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/candidates`).then(r => r.json()),
@@ -106,7 +106,8 @@ export default function TalentPage() {
   const closeVacancyForm = () => { setShowForm(false); setEditingVacancy(null); setVacancyForm({ title: "", description: "", location: "", modality: "hibrido", salaryMin: 0, salaryMax: 0, currency: "USD", requirements: "", status: "draft" }); };
   const closeCandidateForm = () => { setShowForm(false); setEditingCandidate(null); setCandidateForm({ name: "", email: "", phone: "", cvUrl: "", experience: "", skills: "", source: "direct", status: "nuevo", vacancyId: "" }); };
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

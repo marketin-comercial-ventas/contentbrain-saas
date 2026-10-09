@@ -1,18 +1,17 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/modules/identity/http";
+import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { getCompanyById, updateCompany, deleteCompany, getCompanyMembers, inviteMember, updateMemberRole, removeMember, getCompanyStats } from "@/modules/companies/service";
 import { updateCompanySchema, updateMembershipSchema } from "@/shared/contracts/entities";
-import { jsonError, getSessionCompanyId } from "@/modules/identity/http";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
   const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId);
+  if (!authorization.ok) return authorization.response;
+
   const company = await getCompanyById(companyId);
   if (!company) return jsonError(404, "NOT_FOUND", "Empresa no encontrada");
 
@@ -26,10 +25,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
   const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId, "admin");
+  if (!authorization.ok) return authorization.response;
   const body = await request.json();
   const parsed = updateCompanySchema.safeParse(body);
   if (!parsed.success) return jsonError(400, "VALIDATION", "Datos inválidos", parsed.error.flatten());
@@ -44,10 +42,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
   const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId, "owner");
+  if (!authorization.ok) return authorization.response;
   const deleted = await deleteCompany(companyId);
   if (!deleted) return jsonError(404, "NOT_FOUND", "Empresa no encontrada");
 

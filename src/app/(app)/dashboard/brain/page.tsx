@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Save, RefreshCw } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 interface CompanyBrain {
   name: string;
@@ -47,13 +47,13 @@ const defaultBrain: CompanyBrain = {
 };
 
 export default function BrainPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [brain, setBrain] = useState<CompanyBrain>(defaultBrain);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     fetch(`/api/companies/${companyId}/brain`)
       .then((res) => res.json())
       .then((data) => {
@@ -73,7 +73,8 @@ export default function BrainPage() {
     setSaving(false);
   };
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

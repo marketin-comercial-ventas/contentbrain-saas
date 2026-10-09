@@ -1,9 +1,8 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/modules/identity/http";
-import { createCompany, getUserCompanies, getCompanyById, updateCompany, deleteCompany, getCompanyMembers, inviteMember, updateMemberRole, removeMember, getCompanyStats } from "@/modules/companies/service";
-import { newCompanySchema, updateCompanySchema, newMembershipSchema, updateMembershipSchema } from "@/shared/contracts/entities";
-import { jsonError, getSessionCompanyId } from "@/modules/identity/http";
+import { auth, jsonError } from "@/modules/identity/http";
+import { createCompany, getUserCompanies } from "@/modules/companies/service";
+import { newCompanySchema } from "@/shared/contracts/entities";
 
 export async function GET(request: NextRequest) {
   const session = await auth(request);

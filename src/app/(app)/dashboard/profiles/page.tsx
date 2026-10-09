@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, UserCog, Building2, Tag, Target, BarChart3 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 const profileTypes = ["commercial", "talent", "hybrid"] as const;
 
@@ -30,8 +30,7 @@ interface Branch { id: string; name: string; }
 interface User { id: string; name: string; email: string; }
 
 export default function ProfilesPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -45,6 +44,7 @@ export default function ProfilesPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/profiles`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/brands`).then(r => r.json()),
@@ -70,7 +70,8 @@ export default function ProfilesPage() {
   const handleDelete = async (id: string) => { if (!confirm("¿Eliminar este perfil?")) return; await fetch(`/api/companies/${companyId}/profiles/${id}`, { method: "DELETE" }); setProfiles(profiles.filter(p => p.id !== id)); };
   const resetForm = () => setForm({ name: "", type: "commercial", description: "", brandId: "", branchId: "", responsibleUserId: "", settings: {}, kpis: {}, isActive: true });
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">

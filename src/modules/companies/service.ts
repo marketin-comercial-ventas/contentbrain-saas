@@ -84,7 +84,7 @@ export async function updateCompany(id: string, data: Partial<NewCompany>): Prom
 
 export async function deleteCompany(id: string): Promise<boolean> {
   const result = await db.delete(companies).where(eq(companies.id, id));
-  return (result.rowCount ?? 0) > 0;
+  return result.length > 0;
 }
 
 export async function getMembership(userId: string, companyId: string): Promise<Membership | null> {
@@ -142,7 +142,7 @@ export async function updateMemberRole(companyId: string, userId: string, role: 
 
 export async function removeMember(companyId: string, userId: string): Promise<boolean> {
   const result = await db.delete(memberships).where(and(eq(memberships.companyId, companyId), eq(memberships.userId, userId)));
-  return (result.rowCount ?? 0) > 0;
+  return result.length > 0;
 }
 
 export async function getCompanyStats(companyId: string): Promise<Record<string, number>> {

@@ -1,41 +1,37 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/modules/identity/http";
-import { getCompanyById, updateCompany, deleteCompany, getCompanyMembers, inviteMember, updateMemberRole, removeMember, getCompanyStats } from "@/modules/companies/service";
-import { updateCompanySchema, updateMembershipSchema } from "@/shared/contracts/entities";
-import { jsonError, getSessionCompanyId } from "@/modules/identity/http";
+import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
+import { getCompanyById, updateCompany, deleteCompany, getCompanyMembers, getCompanyStats } from "@/modules/companies/service";
+import { updateCompanySchema } from "@/shared/contracts/entities";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
-  const company = await getCompanyById(id);
+  const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId);
+  if (!authorization.ok) return authorization.response;
+  const company = await getCompanyById(companyId);
   if (!company) return jsonError(404, "NOT_FOUND", "Empresa no encontrada");
 
-  const membership = await getCompanyById(id).then(() => Promise.resolve({ role: "owner" }));
-  const members = await getCompanyMembers(id);
-  const stats = await getCompanyStats(id);
+  const members = await getCompanyMembers(companyId);
+  const stats = await getCompanyStats(companyId);
 
   return NextResponse.json({ company: { ...company, members, stats } });
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
+  const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId, "admin");
+  if (!authorization.ok) return authorization.response;
   const body = await request.json();
   const parsed = updateCompanySchema.safeParse(body);
   if (!parsed.success) return jsonError(400, "VALIDATION", "Datos inválidos", parsed.error.flatten());
 
-  const company = await updateCompany(id, parsed.data);
+  const company = await updateCompany(companyId, parsed.data);
   if (!company) return jsonError(404, "NOT_FOUND", "Empresa no encontrada");
 
   return NextResponse.json({ company });
@@ -43,13 +39,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
-  const session = await auth(request);
-  if (!session) return jsonError(401, "UNAUTHENTICATED", "Sesión requerida");
-
-  const { id } = await params;
-  const deleted = await deleteCompany(id);
+  const { companyId } = await params;
+  const authorization = await authorizeCompanyRequest(request, companyId, "owner");
+  if (!authorization.ok) return authorization.response;
+  const deleted = await deleteCompany(companyId);
   if (!deleted) return jsonError(404, "NOT_FOUND", "Empresa no encontrada");
 
   return NextResponse.json({ ok: true });

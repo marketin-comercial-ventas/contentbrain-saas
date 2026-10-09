@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, Sparkles, Brain } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { useParams } from "next/navigation";
+import { useCompany } from "@/components/company-provider";
 
 interface Audience {
   id: string;
@@ -32,8 +32,7 @@ interface Product {
 }
 
 export default function AudiencesPage() {
-  const params = useParams();
-  const companyId = params.companyId as string;
+  const { companyId, loading: companyLoading } = useCompany();
   const [audiences, setAudiences] = useState<Audience[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +55,7 @@ export default function AudiencesPage() {
   });
 
   useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
     Promise.all([
       fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
       fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
@@ -114,7 +114,8 @@ export default function AudiencesPage() {
     setGenerateMode(false);
   };
 
-  if (loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
+  if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
 
   return (
     <div className="space-y-6">
