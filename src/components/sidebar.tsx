@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 import { Avatar } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useCompany } from "@/components/company-provider";
@@ -69,11 +70,8 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-sidebar transition-all duration-200">
       <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center gap-2 border-b px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">CB</span>
-          </div>
-          <span className="text-xl font-semibold">ContentBrain</span>
+        <div className="flex h-16 items-center border-b px-4">
+          <BrandLogo imageClassName="w-[155px]" />
         </div>
 
         <div className="border-b p-3">

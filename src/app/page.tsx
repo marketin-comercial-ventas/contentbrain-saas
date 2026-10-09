@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import {
   BarChart3,
   Briefcase,
@@ -9,7 +10,6 @@ import {
   FileText,
   Megaphone,
   Users,
-  Zap,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -26,10 +26,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-50">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-indigo-600" />
-            <span className="text-xl font-bold">ContentBrain</span>
-          </div>
+          <BrandLogo priority imageClassName="w-[170px]" />
           <nav className="flex items-center gap-4">
             {authed === true ? (
               <Link
@@ -65,7 +62,7 @@ export default function HomePage() {
           <span className="text-indigo-600">inteligencia</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
-          Plataforma todo-en-uno para gestión de marketing, ventas y talento.
+          Plataforma CFDIGITAL todo-en-uno para gestión de marketing, ventas y talento.
           Multiempresa, potenciada con IA.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
@@ -136,7 +133,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t bg-slate-50">
         <div className="mx-auto max-w-6xl px-6 py-8 text-center text-sm text-slate-500">
-          ContentBrain · Plataforma Growth · Sales · Talent
+          CFDIGITAL · Plataforma Growth · Sales · Talent
         </div>
       </footer>
     </div>

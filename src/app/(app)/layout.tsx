@@ -12,7 +12,7 @@ export default function AppLayout({
         <Sidebar />
         <main className="lg:pl-64">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <h1 className="text-xl font-semibold">Dashboard</h1>
+            <h1 className="text-xl font-semibold">CFDIGITAL Dashboard</h1>
           </header>
           <div className="p-4 lg:p-6">{children}</div>
         </main>

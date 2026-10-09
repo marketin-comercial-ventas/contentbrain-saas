@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Plataforma Growth · Sales · Talent",
-  description: "SaaS multiempresa de Growth, Sales y Talent (Foundation)",
+  title: "CFDIGITAL · Plataforma Growth, Sales y Talent",
+  description: "SaaS multiempresa de CFDIGITAL para Growth, Sales y Talent",
+  icons: {
+    icon: "/cfdigital-logo.png",
+    apple: "/cfdigital-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

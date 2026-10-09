@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Page from "@/app/page";
 
-describe("página principal de ContentBrain", () => {
+describe("página principal de CFDIGITAL", () => {
   it("muestra el encabezado comercial de la plataforma", () => {
     render(<Page />);
     expect(
