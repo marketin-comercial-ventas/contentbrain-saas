@@ -40,7 +40,8 @@ describe("límite de autorización por empresa", () => {
       );
       expect(
         source.includes("if (!authorization.ok) return authorization.response") ||
-          source.includes('if ("response" in authorization) return authorization.response'),
+          source.includes('if ("response" in authorization) return authorization.response') ||
+          source.includes('if (authorization.ok === false) return authorization.response'),
         `${route} debe devolver la respuesta del helper`,
       ).toBe(true);
     }

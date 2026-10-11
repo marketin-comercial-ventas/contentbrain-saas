@@ -47,8 +47,9 @@ async function recordAudit(
   userId: string | null,
   event: string,
   metadata: Record<string, unknown> = {},
+  companyId?: string | null,
 ): Promise<void> {
-  await db.insert(auditEvents).values({ userId, event, metadata });
+  await db.insert(auditEvents).values({ userId, companyId, event, metadata });
 }
 
 let dummyHashPromise: Promise<string> | null = null;
@@ -181,4 +182,11 @@ export async function resetPassword(
     .set({ revokedAt: new Date() })
     .where(and(eq(sessions.userId, row.userId), isNull(sessions.revokedAt)));
   await recordAudit(db, row.userId, "auth.password_reset", {});
+}
+
+export async function getUserByEmail(db: Db, email: string): Promise<PublicUser | null> {
+  const normalized = email.trim().toLowerCase();
+  const [user] = await db.select().from(users).where(eq(users.email, normalized));
+  if (!user || user.status !== "active") return null;
+  return publicUser(user);
 }

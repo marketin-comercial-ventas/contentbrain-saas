@@ -8,8 +8,7 @@ config({ path: ".env.local" });
 
 const scryptAsync = promisify(scrypt);
 
-const testDbUrl = process.env.TEST_DATABASE_URL!;
-const dbUrl = "postgres://postgres:PgTest!2026@127.0.0.1:5432/app_development";
+const dbUrl = process.env.TEST_DATABASE_URL || "postgres://postgres:PgTest!2026@127.0.0.1:5432/app_development";
 const { db } = createDb(dbUrl);
 
 async function hashPassword(password: string): Promise<string> {

@@ -31,7 +31,7 @@ export async function POST(
   }
 
   const result = await inviteMember(companyId, email, parsedRole.data, authorization.session.user.id);
-  if (!result) return jsonError(404, "NOT_FOUND", "Usuario no encontrado");
+  if (!result) return jsonError(409, "CONFLICT", "El usuario ya es miembro de esta empresa");
 
   return NextResponse.json(result, { status: 201 });
 }

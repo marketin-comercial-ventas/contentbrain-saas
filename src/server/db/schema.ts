@@ -69,16 +69,20 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
-/** Trazabilidad de autenticación (globales hasta F02). */
+/** Trazabilidad de autenticación y de negocio (F02+: `company_id` opcional para eventos de ámbito tenant). */
 export const auditEvents = pgTable("audit_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: "set null" }),
   event: text("event").notNull(),
   metadata: jsonb("metadata").notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => ({
+  companyIdx: index("audit_events_company_idx").on(t.companyId),
+  eventIdx: index("audit_events_event_idx").on(t.event),
+}));
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 
@@ -126,6 +130,31 @@ export const memberships = pgTable("memberships", {
 
 export type Membership = typeof memberships.$inferSelect;
 export type NewMembership = typeof memberships.$inferInsert;
+
+/** F02 Multi-Tenant: invitaciones a empresas con caducidad y token hasheado. */
+export const invitations = pgTable("invitations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: membershipRoleEnum("role").notNull().default("member"),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  inviterId: uuid("inviter_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  companyIdx: index("invitations_company_idx").on(t.companyId),
+  emailIdx: index("invitations_email_idx").on(t.email),
+}));
+
+export type Invitation = typeof invitations.$inferSelect;
+export type NewInvitation = typeof invitations.$inferInsert;
 
 /* ===================== Company Brain ===================== */
 

@@ -64,6 +64,13 @@
       "when": 1791406000000,
       "tag": "0008_f07_ai_core_extended",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791713572512,
+      "tag": "0009_mighty_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

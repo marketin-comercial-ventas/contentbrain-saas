@@ -12,8 +12,8 @@ async function check() {
   try {
     await db2.execute("SELECT 1");
     console.log("Can connect to app_development as postgres: YES");
-  } catch (e: any) {
-    console.log("Can connect to app_development as postgres: NO -", e.message);
+  } catch (e: unknown) {
+    console.log("Can connect to app_development as postgres: NO -", e instanceof Error ? e.message : String(e));
   }
   await client2.end();
   await client.end();

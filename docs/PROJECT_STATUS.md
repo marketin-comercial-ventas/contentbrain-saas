@@ -14,7 +14,7 @@ Vocabulario de estados de módulo (exclusivo):
 | Campo | Valor |
 |---|---|
 | Bootstrap documental | COMPLETO (AGENTS.md, rules, agentes, skills, control, ADRs) |
-| Módulo activo | F00 Foundation → DONE; F01 Identity → DONE; siguiente: F02 Multi-Tenant (NOT_STARTED) |
+| Módulo activo | F00 Foundation → DONE; F01 Identity → DONE; F02 Multi-Tenant → QA_APPROVED; activo: F03 Company Brain (NOT_STARTED) |
 | Gate vigente | F01: `FINAL STATUS: APPROVED` (exit 0) — `docs/qa/f01/3ba7723-dirty/report.json` |
 | Repositorio | Git `main` (ver `git log`); cierre de F01 |
 | Bloqueos | CI/Vercel sin remoto ni credenciales (aceptado 2026-10-06, REQ-G-06/F00-06 en PEND) |
@@ -25,7 +25,7 @@ Vocabulario de estados de módulo (exclusivo):
 |---|---|---|---|---|---|
 | F00 | Foundation | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f00/5c5e6f4/` (gate en commit limpio) y `docs/qa/f00/5c5e6f4-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
 | F01 | Identity | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f01/3ba7723/` (gate commit limpio) y `docs/qa/f01/3ba7723-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
-| F02 | Multi-Tenant | NOT_STARTED | — | — | — |
+| F02 | Multi-Tenant | QA_APPROVED | opencode · QA: qa-engineer (independiente) | `docs/qa/f02/<commit>/` | — |
 | F03 | Company Brain | NOT_STARTED | — | — | — |
 | F04 | Catálogo | NOT_STARTED | — | — | — |
 | F05 | Audiencias | NOT_STARTED | — | — | — |

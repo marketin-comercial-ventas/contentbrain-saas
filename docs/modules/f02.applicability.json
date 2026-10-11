@@ -1,0 +1,17 @@
+{
+  "tenantIsolation": {
+    "status": "APPLIES",
+    "justification": "F02 establece la frontera multi-tenant central del sistema con companies, memberships y aislamiento estricto en servidor.",
+    "agreedBeforeExecution": "2026-10-11"
+  },
+  "permissions": {
+    "status": "APPLIES",
+    "justification": "F02 implementa el control de acceso inicial por roles de membresía (owner, admin, member, viewer).",
+    "agreedBeforeExecution": "2026-10-11"
+  },
+  "responsive": {
+    "status": "APPLIES",
+    "justification": "Las pantallas mínimas de gestión de empresa y miembros en dashboard deben responder adecuadamente en vista móvil y escritorio.",
+    "agreedBeforeExecution": "2026-10-11"
+  }
+}

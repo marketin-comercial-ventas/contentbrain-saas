@@ -52,3 +52,17 @@ REJECTED, gate final APPROVED).
 Evidencia F01: `docs/qa/f01/3ba7723/` (gate sobre commit limpio) y
 `docs/qa/f01/3ba7723-dirty/` (veredicto QA independiente APPROVED, selftest
 REJECTED, gate final APPROVED).
+
+## F02 Multi-Tenant (contrato en `docs/modules/f02.md`)
+
+| ID | Requisito | Origen | Módulo | Criterio verificable | Pruebas | Estado |
+|---|---|---|---|---|---|---|
+| REQ-F02-01 | Creación de empresa asocia automáticamente al creador como `owner` | MP 4, 37 | F02 | Empresa creada y membresía `owner` insertada en BD | integration | PEND |
+| REQ-F02-02 | Todo acceso a recursos de empresa valida membresía activa en servidor | MP 5 | F02 | 403 si no pertenece, 404 si el recurso no existe en el tenant | integration, security | PEND |
+| REQ-F02-03 | RBAC: Control de permisos por rol (owner, admin, member, viewer) en operaciones de escritura | MP 6 | F02 | Viewer rechazado en creación/edición con 403 | integration, security | PEND |
+| REQ-F02-04 | Aislamiento anti-cruce: consultas directas de Tenant A a recursos de Tenant B bloqueadas | MP 5 | F02 | Pruebas negativas devuelven 403 o conjunto vacío | security, integration | PEND |
+| REQ-F02-05 | Invitaciones con enlace de un solo uso y expiración de 48h | MP 4 | F02 | Token inválido o expirado rechazado con 400 | unit, integration | PEND |
+| REQ-F02-06 | Aceptación de invitación vincula al usuario y marca el token como usado | MP 4 | F02 | Membresía creada y token inutilizado | integration | PEND |
+| REQ-F02-07 | Auditoría de tenant en `audit_events` con referencia de empresa (`company_id`) | MP 4 | F02 | Eventos registrados para alta de empresa e invitaciones | integration | PEND |
+| REQ-F02-08 | Evidencia de F02 guardada en `docs/qa/f02/<commit>/` con formato canónico | MP 36 | F02 | Reporte completo y gate aprobado | revisión documental | PEND |
+
