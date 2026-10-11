@@ -179,6 +179,10 @@ export const companyBrain = pgTable("company_brain", {
   socialTiktok: text("social_tiktok"),
   products: jsonb("products").notNull().default([]),
   services: jsonb("services").notNull().default([]),
+  version: integer("version").notNull().default(1),
+  createdBy: uuid("created_by").references(() => users.id),
+  approvedBy: uuid("approved_by").references(() => users.id),
+  isApproved: boolean("is_approved").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

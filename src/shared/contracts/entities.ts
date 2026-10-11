@@ -46,6 +46,10 @@ export const companyBrainSchema = z.object({
   socialTiktok: z.string().url().optional().nullable(),
   products: z.array(z.string()).default([]),
   services: z.array(z.string()).default([]),
+  version: z.number().int().min(1).default(1),
+  createdBy: z.uuid().optional().nullable(),
+  approvedBy: z.uuid().optional().nullable(),
+  isApproved: z.boolean().default(false),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

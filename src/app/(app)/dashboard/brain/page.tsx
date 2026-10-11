@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Save, RefreshCw } from "lucide-react";
-import { useCompany } from "@/components/company-provider";
+import { Brain, Save, RefreshCw, Check, X } from "lucide-react";
 
 interface CompanyBrain {
+  id: string;
   name: string;
   description: string;
   industry: string;
@@ -24,9 +24,14 @@ interface CompanyBrain {
   socialTiktok: string;
   products: string[];
   services: string[];
+  version: number;
+  createdBy: string | null;
+  approvedBy: string | null;
+  isApproved: boolean;
 }
 
 const defaultBrain: CompanyBrain = {
+  id: "",
   name: "",
   description: "",
   industry: "",
@@ -42,13 +47,22 @@ const defaultBrain: CompanyBrain = {
   socialTiktok: "",
   products: [],
   services: [],
+  version: 1,
+  createdBy: null,
+  approvedBy: null,
+  isApproved: false,
 };
 
 export default function BrainPage() {
   const { companyId, loading: companyLoading } = useCompany();
   const [brain, setBrain] = useState<CompanyBrain>(defaultBrain);
+  const [versions, setVersions] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -57,24 +71,36 @@ export default function BrainPage() {
       if (!companyId) {
         if (!ignore) {
           setBrain(defaultBrain);
+          setVersions([]);
           setLoading(false);
+          setVersionsLoading(false);
         }
         return;
       }
       if (!ignore) setLoading(true);
+      if (!ignore) setVersionsLoading(true);
       try {
-        const res = await fetch(`/api/companies/${companyId}/brain`);
-        const data = await res.json();
+        // Fetch brain
+        const brainRes = await fetch(`/api/companies/${companyId}/brain`);
+        const brainData = await brainRes.json();
+        // Fetch versions
+        const versionsRes = await fetch(`/api/companies/${companyId}/brain/versions`);
+        const versionsData = await versionsRes.json();
         if (!ignore) {
-          setBrain(data.brain || defaultBrain);
+          setBrain(brainData.brain ?? defaultBrain);
+          setVersions(versionsData.versions ?? []);
         }
       } catch (error) {
         console.error('Error fetching brain data:', error);
         if (!ignore) {
           setBrain(defaultBrain);
+          setVersions([]);
         }
       } finally {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+          setVersionsLoading(false);
+        }
       }
     };
 
@@ -87,12 +113,73 @@ export default function BrainPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await fetch(`/api/companies/${companyId}/brain`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(brain),
-    });
-    setSaving(false);
+    setError(null);
+    try {
+      const res = await fetch(`/api/companies/${companyId}/brain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(brain),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al guardar");
+      }
+      // Refetch brain and versions after save
+      const brainRes = await fetch(`/api/companies/${companyId}/brain`);
+      const brainData = await brainRes.json();
+      const versionsRes = await fetch(`/api/companies/${companyId}/brain/versions`);
+      const versionsData = await versionsRes.json();
+      setBrain(brainData.brain ?? defaultBrain);
+      setVersions(versionsData.versions ?? []);
+    } catch (err: any) {
+      setError(err.message || "Error desconocido");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    setApproveLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/companies/${companyId}/brain/approve`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al aprobar");
+      }
+      // Refetch brain after approval
+      const brainRes = await fetch(`/api/companies/${companyId}/brain`);
+      const brainData = await brainRes.json();
+      setBrain(brainData.brain ?? defaultBrain);
+    } catch (err: any) {
+      setError(err.message || "Error desconocido");
+    } finally {
+      setApproveLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setRejectLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/companies/${companyId}/brain/reject`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al rechazar");
+      }
+      // Refetch brain after rejection
+      const brainRes = await fetch(`/api/companies/${companyId}/brain`);
+      const brainData = await brainRes.json();
+      setBrain(brainData.brain ?? defaultBrain);
+    } catch (err: any) {
+      setError(err.message || "Error desconocido");
+    } finally {
+      setRejectLoading(false);
+    }
   };
 
   if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
@@ -107,7 +194,48 @@ export default function BrainPage() {
           </h1>
           <p className="text-muted-foreground">Configura la identidad y conocimiento de tu empresa para la IA</p>
         </div>
+        {/* Approval status and actions */}
+        <div className="flex items-center gap-4 text-sm">
+          {brain.isApproved ? (
+            <>
+              <span className="text-green-600">Aprobado</span>
+              {!approveLoading && !rejectLoading && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReject}
+                  disabled={rejectLoading}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  {rejectLoading ? "Rechazando..." : "Rechazar"}
+                  <X className="mr-2 h-4 w-4" />
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="text-yellow-600">Borrador</span>
+              {!approveLoading && !rejectLoading && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleApprove}
+                  disabled={approveLoading}
+                >
+                  {approveLoading ? "Aprobando..." : "Aprobar"}
+                  <Check className="mr-2 h-4 w-4" />
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
+
+      {error && (
+        <div className="p-4 mb-4 bg-red-50 border-l-4 border-red-200 text-red-700">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         <Tabs defaultValue="identity" className="space-y-4">
@@ -173,7 +301,61 @@ export default function BrainPage() {
           <Button type="submit" disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? "Guardando..." : "Guardar Cambios"}</Button>
           <Button type="button" variant="outline" onClick={() => window.location.reload()}><RefreshCw className="mr-2 h-4 w-4" />Recargar</Button>
         </div>
-      </form>
+      </div>
+
+      {/* Versions history */}
+      <div className="border-t pt-6">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <Check className="text-primary" /> Historial de Versiones
+        </h2>
+        {versionsLoading ? (
+          <div className="animate-spin h-8 w-8 mx-auto">Cargando historial...</div>
+        ) : (
+          <div className="space-y-4">
+            {versions.length === 0 ? (
+              <p className="text-muted-foreground">No hay versiones históricas aún.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versión</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creada por</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {versions.map((v, index) => (
+                      <tr key={v.id || index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {v.version}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {v.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {v.createdBy ?? "Sistema"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(v.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {/* Here we could add a button to view or restore this version */}
+                          <Button variant="ghost" size="xs" className="text-primary">
+                            Ver
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
