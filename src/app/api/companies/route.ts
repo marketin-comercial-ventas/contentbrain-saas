@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { auth, jsonError } from "@/modules/identity/http";
 import { createCompany, getUserCompanies } from "@/modules/companies/service";
 import { newCompanySchema } from "@/shared/contracts/entities";

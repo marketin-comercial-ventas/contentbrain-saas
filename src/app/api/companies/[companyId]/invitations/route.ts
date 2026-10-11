@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { createInvitation } from "@/modules/companies/service";
 import { newInvitationSchema } from "@/shared/contracts/tenants";
@@ -16,14 +17,14 @@ export async function POST(
   if (!parsed.success) return jsonError(400, "VALIDATION", "Datos inválidos");
 
   try {
-    const { invitation, token } = await createInvitation(
+    const { invitation, devToken } = await createInvitation(
       companyId,
-      parsed.data.email,
-      parsed.data.role,
+      {
+        email: parsed.data.email,
+        role: parsed.data.role,
+      },
       authorization.session.user.id
     );
-    // devToken solo en desarrollo/preview
-    const devToken = process.env.NODE_ENV !== "production" ? token : undefined;
     return NextResponse.json({ invitation, devToken }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al crear invitación";

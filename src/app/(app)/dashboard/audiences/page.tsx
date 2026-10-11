@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, Sparkles, Brain } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Sparkles } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useCompany } from "@/components/company-provider";
 
@@ -55,15 +53,41 @@ export default function AudiencesPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
-    ]).then(([audData, prodData]) => {
-      setAudiences(audData.audiences);
-      setProducts(prodData.products);
-      setLoading(false);
-    });
+    let ignore = false;
+
+    (async () => {
+      if (!companyId) {
+        if (!ignore) {
+          setAudiences([]);
+          setProducts([]);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!ignore) setLoading(true);
+      try {
+        const [audData, prodData] = await Promise.all([
+          fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
+          fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
+        ]);
+        if (!ignore) {
+          setAudiences(audData.audiences);
+          setProducts(prodData.products);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        if (!ignore) {
+          setAudiences([]);
+          setProducts([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {

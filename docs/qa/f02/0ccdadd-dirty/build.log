@@ -1,0 +1,81 @@
+$ pnpm build
+exit=0
+durationMs=8403
+
+▲ Next.js 16.4.0 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 100ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1193ms
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/30) ...
+  Generating static pages using 11 workers (7/30) 
+  Generating static pages using 11 workers (14/30) 
+  Generating static pages using 11 workers (22/30) 
+✓ Generating static pages using 11 workers (30/30) in 498ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/forgot
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/register
+├ ƒ /api/auth/reset
+├ ƒ /api/companies
+├ ƒ /api/companies/[companyId]
+├ ƒ /api/companies/[companyId]/audiences
+├ ƒ /api/companies/[companyId]/audiences/[id]
+├ ƒ /api/companies/[companyId]/brain
+├ ƒ /api/companies/[companyId]/branches
+├ ƒ /api/companies/[companyId]/branches/[id]
+├ ƒ /api/companies/[companyId]/brands
+├ ƒ /api/companies/[companyId]/brands/[id]
+├ ƒ /api/companies/[companyId]/campaigns
+├ ƒ /api/companies/[companyId]/campaigns/[id]
+├ ƒ /api/companies/[companyId]/candidates
+├ ƒ /api/companies/[companyId]/candidates/[id]
+├ ƒ /api/companies/[companyId]/content
+├ ƒ /api/companies/[companyId]/content/[id]
+├ ƒ /api/companies/[companyId]/invitations
+├ ƒ /api/companies/[companyId]/leads
+├ ƒ /api/companies/[companyId]/leads/[id]
+├ ƒ /api/companies/[companyId]/members
+├ ƒ /api/companies/[companyId]/products
+├ ƒ /api/companies/[companyId]/products/[id]
+├ ƒ /api/companies/[companyId]/profiles
+├ ƒ /api/companies/[companyId]/profiles/[id]
+├ ƒ /api/companies/[companyId]/vacancies
+├ ƒ /api/companies/[companyId]/vacancies/[id]
+├ ƒ /api/dashboard
+├ ƒ /api/health
+├ ƒ /api/health/db
+├ ƒ /api/invitations/accept
+├ ○ /dashboard
+├ ○ /dashboard/audiences
+├ ○ /dashboard/brain
+├ ○ /dashboard/branches
+├ ○ /dashboard/brands
+├ ○ /dashboard/campaigns
+├ ○ /dashboard/companies
+├ ƒ /dashboard/companies/[id]
+├ ○ /dashboard/content
+├ ○ /dashboard/leads
+├ ○ /dashboard/products
+├ ○ /dashboard/profiles
+├ ○ /dashboard/talent
+├ ○ /login
+├ ○ /recuperar
+├ ○ /registro
+└ ○ /restablecer
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+$ next build

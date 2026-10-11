@@ -1,11 +1,17 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, Users, FileText, Target, Briefcase, Building2, Brain, Package, MessageSquare } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Users } from "lucide-react";
+import { FileText } from "lucide-react";
+import { Target } from "lucide-react";
+import { Briefcase } from "lucide-react";
+import { Brain } from "lucide-react";
+import { Package } from "lucide-react";
+import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { useCompany } from "@/components/company-provider";
 

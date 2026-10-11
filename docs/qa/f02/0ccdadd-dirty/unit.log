@@ -1,0 +1,27 @@
+$ pnpm test:unit
+exit=0
+durationMs=6327
+
+
+ RUN  v5.0.3 C:/proyectos/Proyexto Comercial y Recursos Hunanos
+
+ ✓ |unit| tests/unit/gate-selftest.test.ts (1 test) 9ms
+ ✓ |unit| tests/unit/rate-limit.test.ts (4 tests) 22ms
+ ✓ |unit| tests/unit/gate-decision.test.ts (9 tests) 29ms
+ ✓ |unit| tests/unit/migrate-lib.test.ts (5 tests) 36ms
+ ✓ |unit| tests/unit/auth-contracts.test.ts (4 tests) 25ms
+ ✓ |unit| tests/unit/tenant-contracts.test.ts (17 tests) 43ms
+ ✓ |unit| tests/unit/health.test.ts (4 tests) 19ms
+ ✓ |unit| tests/unit/password.test.ts (4 tests) 643ms
+   ✓ hash de contraseñas con scrypt (4)
+     ✓ verifica la contraseña correcta y rechaza la incorrecta 330ms
+ ✓ |unit| tests/unit/page.test.tsx (2 tests) 514ms
+   ✓ página principal de CFDIGITAL (2)
+     ✓ muestra el encabezado comercial de la plataforma 442ms
+
+ Test Files  9 passed (9)
+      Tests  50 passed (50)
+   Start at  10:06:36
+   Duration  5.26s (environment 60%, setup 28%, transform 6%, tests 4%, import 3%, worker 1%)
+
+$ vitest run --config vitest.unit.config.mts

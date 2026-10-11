@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Sparkles, Edit, Trash2, Copy, Save, FileText, MessageSquare, Target, Zap } from "lucide-react";
-import { useCompany } from "@/components/company-provider";
+import { Zap } from "lucide-react";
+import { FileText } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { Save } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 interface Content {
   id: string;
@@ -23,7 +24,6 @@ interface Content {
 
 interface Product { id: string; name: string; }
 interface Audience { id: string; name: string; }
-interface Campaign { id: string; name: string; }
 
 const contentTypes = ["post", "ad", "script", "email", "story", "reel", "article", "hook", "cta", "hashtags"] as const;
 const channels = ["facebook", "instagram", "linkedin", "twitter", "tiktok", "email", "whatsapp", "web", "otro"] as const;
@@ -33,7 +33,6 @@ export default function ContentStudioPage() {
   const [content, setContent] = useState<Content[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [audiences, setAudiences] = useState<Audience[]>([]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -50,21 +49,59 @@ export default function ContentStudioPage() {
   const [generating, setGenerating] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<Record<string, unknown> | null>(null);
 
-  useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/content`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/campaigns`).then(r => r.json()),
-    ]).then(([c, p, a, ca]) => {
-      setContent(c.content);
-      setProducts(p.products);
-      setAudiences(a.audiences);
-      setCampaigns(ca.campaigns);
+  const fetchData = useCallback(async () => {
+    if (!companyId) {
       setLoading(false);
-    });
+      return;
+    }
+    try {
+      const [contentRes, productsRes, audiencesRes, campaignsRes] = await Promise.all([
+        fetch(`/api/companies/${companyId}/content`).then(r => r.json()),
+        fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
+        fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
+        fetch(`/api/companies/${companyId}/campaigns`).then(r => r.json()),
+      ]);
+      setContent(contentRes.content);
+      setProducts(productsRes.products);
+      setAudiences(audiencesRes.audiences);
+      setCampaigns(campaignsRes.campaigns);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [companyId]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadData = async () => {
+      if (!companyId) {
+        if (!ignore) {
+          setContent([]);
+          setProducts([]);
+          setAudiences([]);
+          setCampaigns([]);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!ignore) setLoading(true);
+      try {
+        await fetchData();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      ignore = true;
+    };
+  }, [companyId, fetchData]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,13 +178,13 @@ export default function ContentStudioPage() {
                 <form onSubmit={handleGenerate} className="space-y-4 max-w-2xl">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2"><Label>Tipo de Contenido *</Label>
-                      <Select value={form.type} onValueChange={(v) => setForm({...form, type: v as any})}>
+                      <Select value={form.type} onValueChange={(v) => setForm({...form, type: String(v)})}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{contentTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2"><Label>Canal *</Label>
-                      <Select value={form.channel} onValueChange={(v) => setForm({...form, channel: v as any})}>
+                      <Select value={form.channel} onValueChange={(v) => setForm({...form, channel: String(v)})}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{channels.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
@@ -157,13 +194,13 @@ export default function ContentStudioPage() {
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2"><Label>Tono *</Label><Input value={form.tone} onChange={(e) => setForm({...form, tone: e.target.value})} placeholder="profesional" required /></div>
                     <div className="space-y-2"><Label>Producto (opcional)</Label>
-                      <Select value={form.productId} onValueChange={(v) => setForm({...form, productId: v})}>
+                      <Select value={form.productId} onValueChange={(v) => setForm({...form, productId: String(v)})}>
                         <SelectTrigger><SelectValue placeholder="Sin producto" /></SelectTrigger>
                         <SelectContent><SelectItem value="">Sin producto</SelectItem>{products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2"><Label>Audiencia (opcional)</Label>
-                      <Select value={form.audienceId} onValueChange={(v) => setForm({...form, audienceId: v})}>
+                      <Select value={form.audienceId} onValueChange={(v) => setForm({...form, audienceId: String(v)})}>
                         <SelectTrigger><SelectValue placeholder="Sin audiencia" /></SelectTrigger>
                         <SelectContent><SelectItem value="">Sin audiencia</SelectItem>{audiences.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
                       </Select>
@@ -224,33 +261,6 @@ export default function ContentStudioPage() {
               </Card>
             </div>
           )}
-        </TabsContent>
-
-        <TabsContent value="library">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Contenidos Guardados ({content.length})</h3>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {content.map((item) => (
-              <Card key={item.id}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg capitalize">{item.type}</CardTitle>
-                  <Badge variant="outline">{item.type}</Badge>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="p-3 border rounded bg-muted/50 text-sm">
-                    {Object.entries(item.output).slice(0, 2).map(([k, v]) => (
-                      <div key={k}><span className="font-medium text-muted-foreground">{k}: </span>{String(v).slice(0, 100)}...</div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2 text-xs text-muted-foreground">
-                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                    {item.input.channel && <span>{item.input.channel}</span>}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </TabsContent>
       </Tabs>
     </div>

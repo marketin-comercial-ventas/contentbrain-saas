@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Package, DollarSign } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Edit } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { Package } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
 const categories = ["producto", "servicio", "curso", "suscripcion", "otro"] as const;
@@ -44,13 +46,42 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    fetch(`/api/companies/${companyId}/products`)
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data.products);
-        setLoading(false);
-      });
+    let ignore = false;
+
+    if (!companyId) {
+      const loadData = async () => {
+        if (!ignore) {
+          setProducts([]);
+          setLoading(false);
+        }
+      };
+      loadData();
+      return;
+    }
+
+    const fetchProducts = async () => {
+      if (!ignore) setLoading(true);
+      try {
+        const res = await fetch(`/api/companies/${companyId}/products`);
+        const data = await res.json();
+        if (!ignore) {
+          setProducts(data.products);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        if (!ignore) {
+          setProducts([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    fetchProducts();
+
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,7 +134,7 @@ export default function ProductsPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2"><Label htmlFor="name">Nombre *</Label><Input id="name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} required /></div>
                 <div className="space-y-2"><Label htmlFor="category">Categoría *</Label>
-                  <Select value={form.category} onValueChange={(v) => setForm({...form, category: v as any})}>
+                  <Select value={form.category} onValueChange={(v) => setForm({...form, category: String(v)})}>
                     <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                     <SelectContent>{categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>

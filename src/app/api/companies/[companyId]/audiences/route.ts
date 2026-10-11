@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { createAudience, getAudiencesByCompany, generateAudienceWithAI } from "@/modules/audiences/service";
 import { newAudienceSchema, generateAudienceSchema } from "@/shared/contracts/entities";

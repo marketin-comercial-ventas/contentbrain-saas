@@ -1,0 +1,17 @@
+$ pnpm test:security
+exit=0
+durationMs=1541
+
+
+ RUN  v5.0.3 C:/proyectos/Proyexto Comercial y Recursos Hunanos
+
+ ✓ |security| tests/security/initial-surface.test.ts (4 tests) 22ms
+ ✓ |security| tests/security/auth-surface.test.ts (9 tests) 13ms
+ ✓ |security| tests/security/company-boundary.test.ts (3 tests) 6ms
+
+ Test Files  3 passed (3)
+      Tests  16 passed (16)
+   Start at  10:07:04
+   Duration  601ms (import 46%, transform 29%, tests 18%, worker 6%)
+
+$ vitest run --config vitest.security.config.mts

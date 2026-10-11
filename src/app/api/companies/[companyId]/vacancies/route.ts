@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { createVacancy, getVacanciesByCompany, getVacancyById, updateVacancy, deleteVacancy } from "@/modules/talent/service";
 import { newVacancySchema, updateVacancySchema } from "@/shared/contracts/entities";

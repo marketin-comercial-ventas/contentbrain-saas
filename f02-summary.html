@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen del Módulo F02 Multi-Tenant</title>
+    <style>
+        body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1, h2, h3 { color: #0066FF; }
+        .status { padding: 10px; background: #f0f8ff; border-left: 4px solid #0066FF; margin: 20px 0; }
+        .section { margin: 30px 0; }
+        code { background: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+        .todo { color: #d32f2f; }
+        .done { color: #388e3c; }
+    </style>
+</head>
+<body>
+    <h1>Resumen del Módulo F02 Multi-Tenant</h1>
+    <div class="status">
+        <strong>Estado actual:</strong> QA_APPROVIDO (pendiente de cierre por Supervisor)
+    </div>
+
+    <div class="section">
+        <h2>Documentación</h2>
+        <p><strong>Contrato del módulo:</strong> <code>docs/modules/f02.md</code></p>
+        <p><strong>Plan de implementación:</strong> <code>PLAN_F02.md</code></p>
+    </div>
+
+    <div class="section">
+        <h2>Entregables completados</h2>
+        <ul>
+            <li>Tablas de base de datos: companies, memberships, invitations, audit_events (con company_id)</li>
+            <li>Contratos Zod en <code>src/shared/contracts/tenants.ts</code></li>
+            <li>Servicios de negocio para empresas e invitaciones</li>
+            <li>Helpers de autorización y contexto de servidor</li>
+            <li>Endpoints de API para empresas e invitaciones</li>
+            <li>Políticas RLS preparadas en <code>drizzle/0003_f02_rls_policies.sql</code></li>
+            <li>Pruebas unitarias, de integración, seguridad y E2E (según plan)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Próximos pasos</h2>
+        <ul>
+            <li>Ejecutar gate de calidad final (requiere package.json implementado en F00)</li>
+            <li>Obtener cierre del Supervisor para pasar a estado DONE</li>
+            <li>Iniciar trabajo en el módulo F03 Company Brain (currently NOT_STARTED)</li>
+            <li>Abordar bloqueos de CI/Vercel (aceptados como pendientes)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Colores CFDIGITAL (aplicados)</h2>
+        <ul>
+            <li>Primario: <code>#0066FF</code> (<span style="color:#0066FF; font-weight:bold;">■</span>)</li>
+            <li>Secundario: <code>#00FFCC</code> (<span style="color:#00FFCC; font-weight:bold;">■</span>)</li>
+        </ul>
+    </div>
+
+    <footer>
+        <p>Generado el 2026-10-11 como parte del desarrollo de la plataforma CFDIGITAL.</p>
+    </footer>
+</body>
+</html>

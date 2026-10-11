@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, UserCog, Building2, Tag, Target, BarChart3 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Edit } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { UserCog } from "lucide-react";
+import { Building2 } from "lucide-react";
+import { Tag } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
 const profileTypes = ["commercial", "talent", "hybrid"] as const;
@@ -44,13 +49,51 @@ export default function ProfilesPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/profiles`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/brands`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/branches`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/users`).then(r => r.json()).catch(() => ({ users: [] })),
-    ]).then(([p, b, br, u]) => { setProfiles(p.profiles); setBrands(b.brands); setBranches(br.branches); setUsers(u.users || []); setLoading(false); });
+    let ignore = false;
+
+    const loadData = async () => {
+      if (!companyId) {
+        if (!ignore) {
+          setProfiles([]);
+          setBrands([]);
+          setBranches([]);
+          setUsers([]);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!ignore) setLoading(true);
+      try {
+        const [profilesRes, brandsRes, branchesRes, usersRes] = await Promise.all([
+          fetch(`/api/companies/${companyId}/profiles`).then(r => r.json()),
+          fetch(`/api/companies/${companyId}/brands`).then(r => r.json()),
+          fetch(`/api/companies/${companyId}/branches`).then(r => r.json()),
+          fetch(`/api/companies/${companyId}/users`).then(r => r.json()).catch(() => ({ users: [] })),
+        ]);
+        if (!ignore) {
+          setProfiles(profilesRes.profiles);
+          setBrands(brandsRes.brands);
+          setBranches(branchesRes.branches);
+          setUsers(usersRes.users || []);
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+        if (!ignore) {
+          setProfiles([]);
+          setBrands([]);
+          setBranches([]);
+          setUsers([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,7 +134,7 @@ export default function ProfilesPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2"><Label htmlFor="name">Nombre *</Label><Input id="name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} required /></div>
                 <div className="space-y-2"><Label>Tipo *</Label>
-                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: v as any})}>
+                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: v})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{profileTypes.map(t => <SelectItem key={t} value={t}>{t === "commercial" ? "Commercial" : t === "talent" ? "Talent" : "Híbrido"}</SelectItem>)}</SelectContent>
                   </Select>

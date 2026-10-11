@@ -1,0 +1,19 @@
+$ pnpm test:integration
+exit=0
+durationMs=14267
+
+[integration] embedded-postgres aislado en postgres://postgres:pgdev@127.0.0.1:55964/app_test
+
+ RUN  v5.0.3 C:/proyectos/Proyexto Comercial y Recursos Hunanos
+
+ ✓ |integration| tests/integration/f02-multi-tenant.test.ts (20 tests) 3334ms
+ ✓ |integration| tests/integration/identity.test.ts (8 tests) 734ms
+ ✓ |integration| tests/integration/migrations.test.ts (5 tests) 325ms
+
+ Test Files  3 passed (3)
+      Tests  33 passed (33)
+   Start at  10:06:56
+   Duration  6.18s (tests 77%, import 19%, transform 3%)
+
+[integration] embedded-postgres detenido y datos eliminados
+$ node scripts/run-integration.mjs

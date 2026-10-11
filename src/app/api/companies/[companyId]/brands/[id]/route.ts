@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { getBrandById, updateBrand, deleteBrand } from "@/modules/brands/service";
 

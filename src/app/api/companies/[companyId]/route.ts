@@ -1,8 +1,7 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
-import { getCompanyById, updateCompany, deleteCompany, getCompanyMembers, inviteMember, updateMemberRole, removeMember, getCompanyStats } from "@/modules/companies/service";
-import { updateCompanySchema, updateMembershipSchema } from "@/shared/contracts/entities";
+import { getCompanyById, updateCompany, deleteCompany, getCompanyMembers, getCompanyStats } from "@/modules/companies/service";
+import { updateCompanySchema } from "@/shared/contracts/entities";
 
 export async function GET(
   request: NextRequest,

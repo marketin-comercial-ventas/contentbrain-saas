@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Building2, MapPin, Phone, Mail, MapPinCheck } from "lucide-react";
+import { Plus, Edit, Trash2, MapPinCheck, Phone, Mail, MapPin, Building2 } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
 const branchTypes = ["sede", "sucursal", "oficina", "almacen", "punto_venta", "otro"] as const;
@@ -50,11 +50,45 @@ export default function BranchesPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/branches`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/brands`).then(r => r.json()),
-    ]).then(([b, br]) => { setBranches(b.branches); setBrands(br.brands); setLoading(false); });
+    let ignore = false;
+
+    if (!companyId) {
+      Promise.resolve().then(() => {
+        if (!ignore) {
+          setBranches([]);
+          setBrands([]);
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
+    const loadData = async () => {
+      if (!ignore) setLoading(true);
+      try {
+        const [branchesRes, brandsRes] = await Promise.all([
+          fetch(`/api/companies/${companyId}/branches`).then(res => res.json()),
+          fetch(`/api/companies/${companyId}/brands`).then(res => res.json()),
+        ]);
+        if (!ignore) {
+          setBranches(branchesRes.branches);
+          setBrands(brandsRes.brands);
+        }
+      } catch (error) {
+        console.error('Error fetching branches data:', error);
+        if (!ignore) {
+          setBranches([]);
+          setBrands([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,7 +132,7 @@ export default function BranchesPage() {
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2"><Label>Tipo</Label>
-                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: v as any})}>
+                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: v})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{branchTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>

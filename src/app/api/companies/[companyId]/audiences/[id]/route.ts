@@ -1,11 +1,10 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { getAudienceById, updateAudience, deleteAudience } from "@/modules/audiences/service";
 import { updateAudienceSchema } from "@/shared/contracts/entities";
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
   const { companyId, id } = await params;
@@ -17,7 +16,7 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
   const { companyId, id } = await params;
@@ -33,7 +32,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ companyId: string; id: string }> }
 ) {
   const { companyId, id } = await params;

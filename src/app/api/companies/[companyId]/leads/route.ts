@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { authorizeCompanyRequest, jsonError } from "@/modules/identity/http";
 import { createLead, getLeadsByCompany, getLeadById, updateLead, moveLead, deleteLead, getLeadPipelineStats } from "@/modules/leads/service";
 import { newLeadSchema, updateLeadSchema, moveLeadSchema } from "@/shared/contracts/entities";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, Briefcase, Users, Mail, Phone, ArrowRight, ArrowLeft, Filter } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Edit } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { Briefcase } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
 const sources = ["website", "facebook", "instagram", "linkedin", "referral", "cold_call", "email", "event", "ads", "organic", "otro"] as const;
@@ -48,9 +50,43 @@ export default function LeadsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("");
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    const url = filterStatus ? `/api/companies/${companyId}/leads?status=${filterStatus}` : `/api/companies/${companyId}/leads`;
-    fetch(url).then(r => r.json()).then(data => { setLeads(data.leads); setLoading(false); });
+    let ignore = false;
+
+    if (!companyId) {
+      const loadData = async () => {
+        if (!ignore) {
+          setLeads([]);
+          setLoading(false);
+        }
+      };
+      loadData();
+      return;
+    }
+
+    const fetchLeads = async () => {
+      if (!ignore) setLoading(true);
+      try {
+        const url = filterStatus ? `/api/companies/${companyId}/leads?status=${filterStatus}` : `/api/companies/${companyId}/leads`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!ignore) {
+          setLeads(data.leads);
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+        if (!ignore) {
+          setLeads([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    fetchLeads();
+
+    return () => {
+      ignore = true;
+    };
   }, [companyId, filterStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,13 +163,13 @@ export default function LeadsPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2"><Label>Fuente</Label>
-                    <Select value={form.source} onValueChange={(v) => setForm({...form, source: v as any})}>
+                    <Select value={form.source} onValueChange={(v) => setForm({...form, source: String(v)})}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{sources.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2"><Label>Estado</Label>
-                    <Select value={form.status} onValueChange={(v) => setForm({...form, status: v as any})}>
+                    <Select value={form.status} onValueChange={(v) => setForm({...form, status: String(v)})}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{statuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
@@ -169,9 +205,30 @@ export default function LeadsPage() {
                 </CardHeader>
                 <CardContent className="flex-1 overflow-y-auto space-y-2 p-0">
                   {leadsByStatus[status]?.map((lead) => (
-                    <Card key={lead.id} className="m-2 p-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setEditing(lead); setForm({...lead, value: lead.value}); setShowForm(true); }}>
-                      <p className="font-medium">{lead.name}</p>
-                      <p className="text-xs text-muted-foreground">{lead.company || "Sin empresa"}</p>
+                    <Card key={lead.id} className="m-2 p-3 cursor-pointer hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <p className="font-medium">{lead.name}</p>
+                          <p className="text-xs text-muted-foreground">{lead.company || "Sin empresa"}</p>
+                        </div>
+                        <div className="space-x-2">
+                          <Button variant="ghost" size="icon" onClick={() => { setEditing(lead); setForm({...lead, value: lead.value}); setShowForm(true); }}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Select value={lead.status} onValueChange={(v) => handleMove(lead.id, String(v))} className="h-8 w-24">
+                            <SelectTrigger>
+                              <SelectValue placeholder={status} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statuses.map(s => (
+                                <SelectItem key={s} value={s}>
+                                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                       <div className="flex gap-1 mt-2">
                         <Badge variant="outline">{lead.source}</Badge>
                         {lead.value > 0 && <Badge variant="secondary">${lead.value.toLocaleString()}</Badge>}

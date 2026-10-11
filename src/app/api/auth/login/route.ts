@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import {
   clientIp,
@@ -15,7 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!isSameOrigin(request)) {
     return jsonError(403, "BAD_ORIGIN", "Origen no permitido");
   }
-  let body: any;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {

@@ -26,7 +26,7 @@ Vocabulario de estados de módulo (exclusivo):
 | F00 | Foundation | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f00/5c5e6f4/` (gate en commit limpio) y `docs/qa/f00/5c5e6f4-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
 | F01 | Identity | DONE | opencode · QA: qa-engineer (independiente) · Supervisor | `docs/qa/f01/3ba7723/` (gate commit limpio) y `docs/qa/f01/3ba7723-dirty/` (QA APPROVED + gate final APPROVED + selftest REJECTED) | — |
 | F02 | Multi-Tenant | QA_APPROVED | opencode · QA: qa-engineer (independiente) | `docs/qa/f02/<commit>/` | — |
-| F03 | Company Brain | NOT_STARTED | — | — | — |
+| F03 | Company Brain | IN_PROGRESS | opencode · QA: qa-engineer (independiente) | — | — |
 | F04 | Catálogo | NOT_STARTED | — | — | — |
 | F05 | Audiencias | NOT_STARTED | — | — | — |
 | F06 | Rules Engine | NOT_STARTED | — | — | — |

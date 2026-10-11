@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { jsonError, readSessionCookie } from "@/modules/identity/http";
 import { getUserByToken } from "@/modules/identity/service";

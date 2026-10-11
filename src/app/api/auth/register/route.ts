@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { clientIp, isSameOrigin, jsonError } from "@/modules/identity/http";
 import { rateLimit } from "@/modules/identity/rate-limit";
@@ -13,7 +12,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!limit.allowed) {
     return jsonError(429, "RATE_LIMITED", "Demasiadas solicitudes, intenta más tarde");
   }
-  let body: any;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {

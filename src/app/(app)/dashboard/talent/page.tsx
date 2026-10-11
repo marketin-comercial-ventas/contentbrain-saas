@@ -1,21 +1,18 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, BriefcaseBusiness, UserPlus, User, Mail, Phone, DollarSign, MapPin, Briefcase } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Edit } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { BriefcaseBusiness } from "lucide-react";
+import { UserPlus } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
-
-const modalities = ["presencial", "hibrido", "remoto"] as const;
-const jobStatuses = ["draft", "published", "paused", "closed", "filled"] as const;
-const candidateStatuses = ["nuevo", "preseleccion", "contacto", "entrevista", "finalista", "oferta", "contratado", "rechazado"] as const;
-const currencies = ["USD", "EUR", "MXN", "ARS", "COP", "CLP", "PEN"] as const;
+import { Label, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/form";
 
 interface Vacancy {
   id: string;
@@ -49,7 +46,7 @@ export default function TalentPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"vacancies" | "candidates">("vacancies");
-  const [showForm, setShowForm] = useState(false);
+  const [_showForm, setShowForm] = useState(false);
   const [editingVacancy, setEditingVacancy] = useState<Vacancy | null>(null);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [vacancyForm, setVacancyForm] = useState({
@@ -61,16 +58,57 @@ export default function TalentPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/vacancies`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/candidates`).then(r => r.json()),
-    ]).then(([v, c]) => { setVacancies(v.vacancies); setCandidates(c.candidates); setLoading(false); });
+    let ignore = false;
+
+    if (!companyId) {
+      const loadData = async () => {
+        if (!ignore) {
+          setVacancies([]);
+          setCandidates([]);
+          setLoading(false);
+        }
+      };
+      loadData();
+      return;
+    }
+
+    const fetchData = async () => {
+      if (!ignore) setLoading(true);
+      try {
+        const [vacanciesRes, candidatesRes] = await Promise.all([
+          fetch(`/api/companies/${companyId}/vacancies`).then(r => r.json()),
+          fetch(`/api/companies/${companyId}/candidates`).then(r => r.json()),
+        ]);
+        if (!ignore) {
+          setVacancies(vacanciesRes.vacancies);
+          setCandidates(candidatesRes.candidates);
+        }
+      } catch (error) {
+        console.error('Error fetching talent data:', error);
+        if (!ignore) {
+          setVacancies([]);
+          setCandidates([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
-  const handleVacancySubmit = async (e: React.FormEvent) => {
+  const _handleVacancySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { ...vacancyForm, salaryMin: vacancyForm.salaryMin || null, salaryMax: vacancyForm.salaryMax || null, requirements: vacancyForm.requirements.split("\n").filter(Boolean) };
+    const data = {
+      ...vacancyForm,
+      salaryMin: vacancyForm.salaryMin || null,
+      salaryMax: vacancyForm.salaryMax || null,
+      requirements: vacancyForm.requirements.split("\n").filter(Boolean)
+    };
     const method = editingVacancy ? "PATCH" : "POST";
     const url = editingVacancy ? `/api/companies/${companyId}/vacancies/${editingVacancy.id}` : `/api/companies/${companyId}/vacancies`;
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
@@ -82,9 +120,13 @@ export default function TalentPage() {
     }
   };
 
-  const handleCandidateSubmit = async (e: React.FormEvent) => {
+  const _handleCandidateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { ...candidateForm, skills: candidateForm.skills.split("\n").filter(Boolean), vacancyId: candidateForm.vacancyId || null };
+    const data = {
+      ...candidateForm,
+      skills: candidateForm.skills.split("\n").filter(Boolean),
+      vacancyId: candidateForm.vacancyId || null
+    };
     const method = editingCandidate ? "PATCH" : "POST";
     const url = editingCandidate ? `/api/companies/${companyId}/candidates/${editingCandidate.id}` : `/api/companies/${companyId}/candidates`;
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
@@ -96,15 +138,52 @@ export default function TalentPage() {
     }
   };
 
-  const handleDeleteVacancy = async (id: string) => { if (!confirm("¿Eliminar vacante?")) return; await fetch(`/api/companies/${companyId}/vacancies/${id}`, { method: "DELETE" }); setVacancies(vacancies.filter(v => v.id !== id)); };
-  const handleDeleteCandidate = async (id: string) => { if (!confirm("¿Eliminar candidato?")) return; await fetch(`/api/companies/${companyId}/candidates/${id}`, { method: "DELETE" }); setCandidates(candidates.filter(c => c.id !== id)); };
-  const handleMoveCandidate = async (id: string, status: string) => {
-    await fetch(`/api/companies/${companyId}/candidates/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ moveOnly: true, status }) });
-    setCandidates(candidates.map(c => c.id === id ? { ...c, status } : c));
+  const closeVacancyForm = () => {
+    setShowForm(false);
+    setEditingVacancy(null);
+    setVacancyForm({
+      title: "",
+      description: "",
+      location: "",
+      modality: "hibrido",
+      salaryMin: 0,
+      salaryMax: 0,
+      currency: "USD",
+      requirements: "",
+      status: "draft"
+    });
   };
 
-  const closeVacancyForm = () => { setShowForm(false); setEditingVacancy(null); setVacancyForm({ title: "", description: "", location: "", modality: "hibrido", salaryMin: 0, salaryMax: 0, currency: "USD", requirements: "", status: "draft" }); };
-  const closeCandidateForm = () => { setShowForm(false); setEditingCandidate(null); setCandidateForm({ name: "", email: "", phone: "", cvUrl: "", experience: "", skills: "", source: "direct", status: "nuevo", vacancyId: "" }); };
+  const closeCandidateForm = () => {
+    setShowForm(false);
+    setEditingCandidate(null);
+    setCandidateForm({
+      name: "",
+      email: "",
+      phone: "",
+      cvUrl: "",
+      experience: "",
+      skills: "",
+      source: "direct",
+      status: "nuevo",
+      vacancyId: ""
+    });
+  };
+
+  const handleDeleteVacancy = async (id: string) => {
+    if (!confirm("¿Eliminar vacante?")) return;
+    await fetch(`/api/companies/${companyId}/vacancies/${id}`, { method: "DELETE" });
+    setVacancies(vacancies.filter(v => v.id !== id));
+  };
+
+  const handleDeleteCandidate = async (id: string) => {
+    if (!confirm("¿Eliminar candidato?")) return;
+    await fetch(`/api/companies/${companyId}/candidates/${id}`, { method: "DELETE" });
+    setCandidates(candidates.filter(c => c.id !== id));
+  };
+
+  // Define candidate statuses for Kanban view
+  const candidateStatuses = ["nuevo", "preseleccion", "contacto", "entrevista", "finalista", "oferta", "contratado", "rechazado"];
 
   if (companyLoading || loading) return <div className="animate-spin h-8 w-8 border-b-2 border-primary" />;
   if (!companyId) return <p className="text-muted-foreground">Selecciona una empresa para comenzar.</p>;
@@ -120,10 +199,30 @@ export default function TalentPage() {
           <Button onClick={() => {
             if (activeTab === "vacancies") {
               setEditingVacancy(null);
-              setVacancyForm({ title: "", description: "", location: "", modality: "hibrido", salaryMin: 0, salaryMax: 0, currency: "USD", requirements: "", status: "draft" });
+              setVacancyForm({
+                title: "",
+                description: "",
+                location: "",
+                modality: "hibrido",
+                salaryMin: 0,
+                salaryMax: 0,
+                currency: "USD",
+                requirements: "",
+                status: "draft"
+              });
             } else {
               setEditingCandidate(null);
-              setCandidateForm({ name: "", email: "", phone: "", cvUrl: "", experience: "", skills: "", source: "direct", status: "nuevo", vacancyId: "" });
+              setCandidateForm({
+                name: "",
+                email: "",
+                phone: "",
+                cvUrl: "",
+                experience: "",
+                skills: "",
+                source: "direct",
+                status: "nuevo",
+                vacancyId: ""
+              });
             }
             setShowForm(true);
           }}>
@@ -131,6 +230,223 @@ export default function TalentPage() {
           </Button>
         </div>
       </div>
+
+      {_showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+            <form onSubmit={(e) => {
+  if (activeTab === "vacancies") {
+    _handleVacancySubmit(e);
+  } else {
+    _handleCandidateSubmit(e);
+  }
+}} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Título *</Label>
+                  <Input
+                    value={activeTab === "vacancies" ? vacancyForm.title : candidateForm.name}
+                    onChange={(e) => {
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, title: e.target.value });
+                      } else {
+                        setCandidateForm({ ...candidateForm, name: e.target.value });
+                      }
+                    }}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Descripción *</Label>
+                  <Input
+                    value={activeTab === "vacancies" ? vacancyForm.description : candidateForm.email}
+                    onChange={(e) => {
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, description: e.target.value });
+                      } else {
+                        setCandidateForm({ ...candidateForm, email: e.target.value });
+                      }
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Ubicación</Label>
+                  <Input
+                    value={activeTab === "vacancies" ? vacancyForm.location : candidateForm.phone}
+                    onChange={(e) => {
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, location: e.target.value });
+                      } else {
+                        setCandidateForm({ ...candidateForm, phone: e.target.value });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Modalidad</Label>
+                  <Select
+                    value={activeTab === "vacancies" ? vacancyForm.modality : candidateForm.cvUrl}
+                    onValueChange={(v) => {
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, modality: String(v) });
+                      } else {
+                        setCandidateForm({ ...candidateForm, cvUrl: String(v) });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["presencial", "hibrido", "remoto"].map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Salario Mínimo</Label>
+                  <Input
+                    type="number"
+                    value={activeTab === "vacancies" ? (vacancyForm.salaryMin ?? 0) : candidateForm.experience}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, salaryMin: value ? Number(value) : null });
+                      } else {
+                        setCandidateForm({ ...candidateForm, experience: value });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Salario Máximo</Label>
+                  <Input
+                    type="number"
+                    value={activeTab === "vacancies" ? (vacancyForm.salaryMax ?? 0) : candidateForm.skills}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (activeTab === "vacancies") {
+                        setVacancyForm({ ...vacancyForm, salaryMax: value ? Number(value) : null });
+                      } else {
+                        setCandidateForm({ ...candidateForm, skills: value });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Moneda</Label>
+                <Select
+                  value={activeTab === "vacancies" ? vacancyForm.currency : candidateForm.source}
+                  onValueChange={(v) => {
+                    if (activeTab === "vacancies") {
+                      setVacancyForm({ ...vacancyForm, currency: String(v) });
+                    } else {
+                      setCandidateForm({ ...candidateForm, source: String(v) });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                    <SelectContent>
+                      {["USD", "EUR", "MXN", "ARS", "COP", "CLP", "PEN"].map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Requisitos (uno por línea)</Label>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border rounded"
+                  value={activeTab === "vacancies" ? vacancyForm.requirements.join("\n") : candidateForm.status}
+                  onChange={(e) => {
+                    if (activeTab === "vacancies") {
+                      setVacancyForm({ ...vacancyForm, requirements: e.target.value.split("\n").filter(Boolean) });
+                    } else {
+                      setCandidateForm({ ...candidateForm, status: e.target.value });
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Estado</Label>
+                <Select
+                  value={activeTab === "vacancies" ? vacancyForm.status : candidateForm.vacancyId}
+                  onValueChange={(v) => {
+                    if (activeTab === "vacancies") {
+                      setVacancyForm({ ...vacancyForm, status: String(v) });
+                    } else {
+                      setCandidateForm({ ...candidateForm, vacancyId: String(v) });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                    <SelectContent>
+                      {["draft", "published", "paused", "closed", "filled"].map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                </Select>
+                {/* For candidate status */}
+                {activeTab === "candidates" && (
+                  <>
+                    <Select
+                      value={candidateForm.status}
+                      onValueChange={(v) => setCandidateForm({ ...candidateForm, status: String(v) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["nuevo", "preseleccion", "contacto", "entrevista", "finalista", "oferta", "contratado", "rechazado"].map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit">
+                  {editingVacancy || editingCandidate ? "Actualizar" : "Crear"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (activeTab === "vacancies") {
+                      closeVacancyForm();
+                    } else {
+                      closeCandidateForm();
+                    }
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
@@ -141,7 +457,21 @@ export default function TalentPage() {
         <TabsContent value="vacancies">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Vacantes</h3>
-            <Button onClick={() => { setEditingVacancy(null); setVacancyForm({ title: "", description: "", location: "", modality: "hibrido", salaryMin: 0, salaryMax: 0, currency: "USD", requirements: "", status: "draft" }); setShowForm(true); }}>
+            <Button onClick={() => {
+              setEditingVacancy(null);
+              setVacancyForm({
+                title: "",
+                description: "",
+                location: "",
+                modality: "hibrido",
+                salaryMin: 0,
+                salaryMax: 0,
+                currency: "USD",
+                requirements: "",
+                status: "draft"
+              });
+              setShowForm(true);
+            }}>
               <Plus className="mr-2 h-4 w-4" />Nueva Vacante
             </Button>
           </div>
@@ -161,7 +491,21 @@ export default function TalentPage() {
                     <Badge variant="outline">{vacancy.requirements.length} requisitos</Badge>
                   </div>
                   <div className="flex gap-1 pt-2">
-                    <Button variant="ghost" size="icon" onClick={() => { setEditingVacancy(vacancy); setVacancyForm({ title: vacancy.title, description: vacancy.description, location: vacancy.location, modality: vacancy.modality, salaryMin: vacancy.salaryMin || 0, salaryMax: vacancy.salaryMax || 0, currency: vacancy.currency, requirements: vacancy.requirements.join("\n"), status: vacancy.status }); setShowForm(true); }}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setEditingVacancy(vacancy);
+                      setVacancyForm({
+                        title: vacancy.title,
+                        description: vacancy.description,
+                        location: vacancy.location,
+                        modality: vacancy.modality,
+                        salaryMin: vacancy.salaryMin || 0,
+                        salaryMax: vacancy.salaryMax || 0,
+                        currency: vacancy.currency,
+                        requirements: vacancy.requirements.join("\n"),
+                        status: vacancy.status
+                      });
+                      setShowForm(true);
+                    }}><Edit className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteVacancy(vacancy.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </CardContent>
@@ -173,7 +517,21 @@ export default function TalentPage() {
         <TabsContent value="candidates">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Candidatos</h3>
-            <Button onClick={() => { setEditingCandidate(null); setCandidateForm({ name: "", email: "", phone: "", cvUrl: "", experience: "", skills: "", source: "direct", status: "nuevo", vacancyId: "" }); setShowForm(true); }}>
+            <Button onClick={() => {
+              setEditingCandidate(null);
+              setCandidateForm({
+                name: "",
+                email: "",
+                phone: "",
+                cvUrl: "",
+                experience: "",
+                skills: "",
+                source: "direct",
+                status: "nuevo",
+                vacancyId: ""
+              });
+              setShowForm(true);
+            }}>
               <UserPlus className="mr-2 h-4 w-4" />Nuevo Candidato
             </Button>
           </div>
@@ -184,7 +542,7 @@ export default function TalentPage() {
             </TabsList>
 
             <TabsContent value="kanban">
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-cols-8 h-[calc(100vh-300px)] overflow-y-auto">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-[calc(100vh-300px)] overflow-y-auto">
                 {candidateStatuses.map((status) => (
                   <Card key={status} className="flex flex-col h-full">
                     <CardHeader className="pb-2">
@@ -195,17 +553,21 @@ export default function TalentPage() {
                     </CardHeader>
                     <CardContent className="flex-1 overflow-y-auto space-y-2 p-0">
                       {candidates.filter(c => c.status === status).map((candidate) => (
-                        <Card key={candidate.id} className="m-2 p-3 cursor-pointer hover:shadow-md" onClick={() => { setEditingCandidate(candidate); setCandidateForm({...candidate, skills: candidate.skills.join("\n")}); setShowForm(true); }}>
+                        <Card key={candidate.id} className="m-2 p-3 cursor-pointer hover:shadow-md" onClick={() => {
+                          setEditingCandidate(candidate);
+                          setCandidateForm({...candidate, skills: candidate.skills.join("\n")});
+                          setShowForm(true);
+                        }}>
                           <p className="font-medium">{candidate.name}</p>
                           <p className="text-xs text-muted-foreground">{candidate.email || "Sin email"}</p>
                           <div className="flex flex-wrap gap-1 mt-2">
                             {candidate.skills.slice(0, 3).map(s => <Badge key={s} variant="outline">{s}</Badge>)}
                             {candidate.skills.length > 3 && <Badge variant="secondary">+{candidate.skills.length - 3}</Badge>}
                           </div>
-                        </Card>
+                        </Card
                       ))}
-                    </CardContent>
-                  </Card>
+                    </CardContent
+                  </Card
                 ))}
               </div>
             </TabsContent>
@@ -223,10 +585,14 @@ export default function TalentPage() {
                       <Badge variant="outline">{candidate.source}</Badge>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditingCandidate(candidate); setCandidateForm({...candidate, skills: candidate.skills.join("\n")}); setShowForm(true); }}><Edit className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        setEditingCandidate(candidate);
+                        setCandidateForm({...candidate, skills: candidate.skills.join("\n")});
+                        setShowForm(true);
+                      }}><Edit className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDeleteCandidate(candidate.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </div>
-                  </Card>
+                  </Card
                 ))}
               </div>
             </TabsContent>

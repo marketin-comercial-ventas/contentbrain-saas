@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { db, eq, and, desc } from "@/server/db/client";
 import { audiences, type Audience, type NewAudience } from "@/server/db/schema";
 import { aiCore } from "@/modules/ai-core/service";

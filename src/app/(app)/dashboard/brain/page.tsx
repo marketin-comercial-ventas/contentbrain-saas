@@ -1,12 +1,10 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Save, RefreshCw } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
@@ -53,13 +51,37 @@ export default function BrainPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    fetch(`/api/companies/${companyId}/brain`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.brain) setBrain(data.brain);
-        setLoading(false);
-      });
+    let ignore = false;
+
+    const loadData = async () => {
+      if (!companyId) {
+        if (!ignore) {
+          setBrain(defaultBrain);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!ignore) setLoading(true);
+      try {
+        const res = await fetch(`/api/companies/${companyId}/brain`);
+        const data = await res.json();
+        if (!ignore) {
+          setBrain(data.brain || defaultBrain);
+        }
+      } catch (error) {
+        console.error('Error fetching brain data:', error);
+        if (!ignore) {
+          setBrain(defaultBrain);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSave = async (e: React.FormEvent) => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -48,19 +47,74 @@ export default function CampaignsPage() {
     status: "draft",
   });
 
-  useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    Promise.all([
-      fetch(`/api/companies/${companyId}/campaigns`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
-      fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
-    ]).then(([c, p, a]) => {
-      setCampaigns(c.campaigns);
-      setProducts(p.products);
-      setAudiences(a.audiences);
-      setLoading(false);
-    });
+  const fetchData = useCallback(async () => {
+    if (!companyId) {
+      return {
+        campaigns: [],
+        products: [],
+        audiences: []
+      };
+    }
+    try {
+      const [campaignsRes, productsRes, audiencesRes] = await Promise.all([
+        fetch(`/api/companies/${companyId}/campaigns`).then(r => r.json()),
+        fetch(`/api/companies/${companyId}/products`).then(r => r.json()),
+        fetch(`/api/companies/${companyId}/audiences`).then(r => r.json()),
+      ]);
+      return {
+        campaigns: campaignsRes.campaigns,
+        products: productsRes.products,
+        audiences: audiencesRes.audiences
+      };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      return {
+        campaigns: [],
+        products: [],
+        audiences: []
+      };
+    }
   }, [companyId]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadData = async () => {
+      if (!companyId) {
+        if (!ignore) {
+          setCampaigns([]);
+          setProducts([]);
+          setAudiences([]);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!ignore) setLoading(true);
+      try {
+        const result = await fetchData();
+        if (!ignore) {
+          setCampaigns(result.campaigns);
+          setProducts(result.products);
+          setAudiences(result.audiences);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        if (!ignore) {
+          setCampaigns([]);
+          setProducts([]);
+          setAudiences([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      ignore = true;
+    };
+  }, [fetchData, companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +161,7 @@ export default function CampaignsPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2"><Label htmlFor="name">Nombre *</Label><Input id="name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} required /></div>
                 <div className="space-y-2"><Label htmlFor="channel">Canal *</Label>
-                  <Select value={form.channel} onValueChange={(v) => setForm({...form, channel: v as any})}>
+                  <Select value={form.channel} onValueChange={(v) => setForm({...form, channel: String(v)})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{channels.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
@@ -128,7 +182,7 @@ export default function CampaignsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2"><Label>Estado</Label>
-                  <Select value={form.status} onValueChange={(v) => setForm({...form, status: v as any})}>
+                  <Select value={form.status} onValueChange={(v) => setForm({...form, status: String(v)})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{statuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>

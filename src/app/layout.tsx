@@ -13,7 +13,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-white text-neutral-900 antialiased">{children}</body>
+      <body className="min-h-screen bg-white text-neutral-900 antialiased">
+        <header className="flex items-center justify-center mb-6">
+          <img src="/cfdigital-logo.png" alt="CFDIGITAL" className="h-10 w-auto" />
+        </header>
+        {children}
+      </body>
     </html>
   );
 }

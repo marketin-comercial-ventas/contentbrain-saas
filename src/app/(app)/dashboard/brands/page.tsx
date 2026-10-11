@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Tag, Building2, Globe, Sparkles } from "lucide-react";
+import { Plus, Edit, Trash2, Tag, Globe, Sparkles } from "lucide-react";
 import { useCompany } from "@/components/company-provider";
 
 const brandTypes = ["principal", "secundaria", "producto", "servicio", "franquicia"] as const;
@@ -38,8 +38,39 @@ export default function BrandsPage() {
   });
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
-    fetch(`/api/companies/${companyId}/brands`).then(r => r.json()).then(data => { setBrands(data.brands); setLoading(false); });
+    let ignore = false;
+
+    if (!companyId) {
+      Promise.resolve().then(() => {
+        if (!ignore) {
+          setBrands([]);
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
+    const loadData = async () => {
+      if (!ignore) setLoading(true);
+      try {
+        const data = await fetch(`/api/companies/${companyId}/brands`).then(r => r.json());
+        if (!ignore) {
+          setBrands(data.brands);
+        }
+      } catch (error) {
+        console.error('Error fetching brands data:', error);
+        if (!ignore) {
+          setBrands([]);
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
   }, [companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +118,7 @@ export default function BrandsPage() {
               <div className="space-y-2"><Label htmlFor="description">Descripción</Label><Input id="description" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} /></div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2"><Label htmlFor="type">Tipo</Label>
-                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: v as any})}>
+                  <Select value={form.type} onValueChange={(v) => setForm({...form, type: String(v)})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{brandTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>

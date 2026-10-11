@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { auth, jsonError } from "@/modules/identity/http";
 import { getDashboardMetrics } from "@/modules/dashboard/service";
 

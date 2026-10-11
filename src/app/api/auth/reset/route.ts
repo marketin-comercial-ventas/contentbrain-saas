@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { isSameOrigin, jsonError } from "@/modules/identity/http";
 import { rateLimit } from "@/modules/identity/rate-limit";

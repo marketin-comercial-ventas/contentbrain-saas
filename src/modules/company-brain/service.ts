@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { db, eq } from "@/server/db/client";
 import { companyBrain, type CompanyBrain, type NewCompanyBrain } from "@/server/db/schema";
 
